@@ -1,0 +1,45 @@
+﻿"Phrases"
+{
+	"Already Voted"
+	{
+		"en"	"[SM] You have already voted for this item."
+	}
+
+	"No Valid Clients"
+	{
+		"en"	"[SM] No clients available."
+	}
+
+	"No Votes Remaining"
+	{
+		"en"	"[SM] You may no longer vote for this item."
+	}
+
+	"Voting No Longer Available"
+	{
+		"en"	"[SM] This vote is no longer available to players."
+	}
+
+	"Not Enough Valid Clients"
+	{
+		"en"	"[SM] There are not enough players to vote for this."
+	}
+
+	"Votes Remaining"
+	{
+		"#format"	"{1:i}"
+		"en"		"[SM] You may vote for this {1} more time(s)."
+	}
+
+	"Vote Delay"
+	{
+		"#format"	"{1:i}"
+		"en"		"[SM] You must wait {1} more second(s) before voting."
+	}
+
+	"Vote Cooldown"
+	{
+		"#format"	"{1:i}"
+		"en"		"[SM] You must wait {1} more second(s) before voting for this again."
+	}
+}
