@@ -7,13 +7,13 @@ This is a modified version of
 [ReFlexPoison](https://forums.alliedmods.net/member.php?u=149090)‘s [custom
 votes redux](https://forums.alliedmods.net/showthread.php?t=235115) plugin.
 
-In this version, I added logging. All votes are logged.
+In this version, all votes are logged to a text file.
 
-  
 Examples from my server:
 
  
-```
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Vote Type: List
 
 L 04/28/2018 - 13:21:12: [Custom Votes] Vote Give Cash to RED started by
@@ -40,7 +40,13 @@ Vote Type: Players
 
 L 04/28/2018 - 14:30:43: [Custom Votes] Vote Ban player started by TF2 GAMER (
 STEAM_ID ) targeting rees123 ( STEAM_ID ).
-```
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+Feel free to report bugs/give suggestions.
+
+For contributions, please use pull requests.
 
  
 
