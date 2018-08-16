@@ -8,7 +8,7 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.11U"
+#define PLUGIN_VERSION "1.12U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -84,6 +84,8 @@ public Plugin:myinfo =
 	url = "http://www.sourcemod.net/"
 	/* Special thanks to afk manager ( https://forums.alliedmods.net/showthread.php?p=708265 ) and sourcecmod anti-cheat developers.
 	I looked at their's plugin in order to learn how to add file logging. */
+	// Special thanks for those who contributed on github
+	// sneak-it ( https://github.com/caxanga334/cvreduxmodified/pull/1 )
 }
 
 // ====[ FUNCTIONS ]===========================================================
