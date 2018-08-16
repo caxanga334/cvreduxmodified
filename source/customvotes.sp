@@ -3,6 +3,8 @@
 // ====[ INCLUDES ]============================================================
 #include <sourcemod>
 #include <morecolors>
+#undef REQUIRE_PLUGIN
+#tryinclude <KZTimer>
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
@@ -46,8 +48,9 @@ new bool:g_bVoteMultiple[MAX_VOTE_TYPES];
 new bool:g_bVoteForTarget[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAXPLAYERS + 1];
 new bool:g_bVoteForMap[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_MAPS];
 new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
-new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new Float:g_flVoteRatio[MAX_VOTE_TYPES];
+bool g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+bool g_bKzTimer = false;
+float g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteOverride[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -100,6 +103,8 @@ public OnPluginStart()
 	AddCommandListener(OnClientSayCmd, "say");
 	AddCommandListener(OnClientSayCmd, "say_team");
 
+	g_bKzTimer = LibraryExists("KZTimer");
+
 	if(g_hArrayRecentMaps == INVALID_HANDLE)
 		g_hArrayRecentMaps = CreateArray(MAX_NAME_LENGTH);
 		
@@ -130,6 +135,22 @@ public OnMapStart()
 	CreateTimer(1.0, Timer_Second, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	
 	CreateLogFile();
+}
+
+public void OnLibraryAdded(const char[] szName)
+{
+	if (StrEqual(szName, "KZTimer"))
+	{
+		g_bKzTimer = true;
+	}
+}
+
+public void OnLibraryRemoved(const char[] szName)
+{
+	if (StrEqual(szName, "KZTimer"))
+	{
+		g_bKzTimer = false;
+	}
 }
 
 public OnClientConnected(iTarget)
@@ -388,6 +409,14 @@ public Menu_ChooseVote(iVoter)
 		AddMenuItem(hMenu, strIndex, strName, iFlags);
 	}
 
+	for (new i=1; i<=MaxClients; i++)
+	{
+		if (IsClientInGame(i) && g_bKzTimer)
+		{
+			KZTimer_StopUpdatingOfClimbersMenu(i);
+		}
+	}
+
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
@@ -502,6 +531,14 @@ public Menu_PlayersVote(iVote, iVoter)
 	{
 		CPrintToChat(iVoter, "%t", "No Valid Clients");
 		return;
+	}
+
+	for (new i=1; i<=MaxClients; i++)
+	{
+		if (IsClientInGame(i) && g_bKzTimer)
+		{
+			KZTimer_StopUpdatingOfClimbersMenu(i);
+		}
 	}
 
 	DisplayMenu(hMenu, iVoter, 30);
@@ -881,6 +918,14 @@ public Menu_MapVote(iVote, iVoter)
 			AddMenuItem(hMenu, strMap, strBuffer, iFlags);
 	}
 
+	for (new i=1; i<=MaxClients; i++)
+	{
+		if (IsClientInGame(i) && g_bKzTimer)
+		{
+			KZTimer_StopUpdatingOfClimbersMenu(i);
+		}
+	}
+
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
@@ -1209,6 +1254,14 @@ public Menu_ListVote(iVote, iVoter)
 			InsertMenuItem(hMenu, 0, strIndex, strBuffer);
 		else
 			AddMenuItem(hMenu, strIndex, strBuffer);
+	}
+
+	for (new i=1; i<=MaxClients; i++)
+	{
+		if (IsClientInGame(i) && g_bKzTimer)
+		{
+			KZTimer_StopUpdatingOfClimbersMenu(i);
+		}
 	}
 
 	DisplayMenu(hMenu, iVoter, 30);
