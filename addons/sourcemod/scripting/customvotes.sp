@@ -1998,7 +1998,7 @@ public Config_Load()
 				KvGetString(hKeyValues, "maplist", strMapList, sizeof(strMapList), "default");
 
 				g_hArrayVoteMapList[iVote] = CreateArray(MAX_NAME_LENGTH);
-				ReadMapList(g_hArrayVoteMapList[iVote], _, strMapList, MAPLIST_FLAG_CLEARARRAY | MAPLIST_FLAG_NO_DEFAULT);
+				ReadMapList(g_hArrayVoteMapList[iVote], _, strMapList, MAPLIST_FLAG_CLEARARRAY);
 			}
 			case VoteType_List:
 			{
