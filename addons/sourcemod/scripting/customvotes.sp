@@ -2,7 +2,7 @@
 
 // ====[ INCLUDES ]============================================================
 #include <sourcemod>
-#include <morecolors>
+#include <multicolors>
 #undef REQUIRE_PLUGIN
 #tryinclude <KZTimer>
 
