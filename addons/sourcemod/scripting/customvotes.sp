@@ -48,9 +48,9 @@ new bool:g_bVoteMultiple[MAX_VOTE_TYPES];
 new bool:g_bVoteForTarget[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAXPLAYERS + 1];
 new bool:g_bVoteForMap[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_MAPS];
 new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
-bool g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-bool g_bKzTimer = false;
-float g_flVoteRatio[MAX_VOTE_TYPES];
+new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+new bool:g_bKzTimer = false;
+new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteOverride[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -137,7 +137,7 @@ public OnMapStart()
 	CreateLogFile();
 }
 
-public void OnLibraryAdded(const char[] szName)
+public OnLibraryAdded(const String:szName[])
 {
 	if (StrEqual(szName, "KZTimer"))
 	{
@@ -145,7 +145,7 @@ public void OnLibraryAdded(const char[] szName)
 	}
 }
 
-public void OnLibraryRemoved(const char[] szName)
+public OnLibraryRemoved(const String:szName[])
 {
 	if (StrEqual(szName, "KZTimer"))
 	{
