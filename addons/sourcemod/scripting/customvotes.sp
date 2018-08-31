@@ -1717,22 +1717,32 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
 				FormatVoterString(g_iCurrentVoteIndex, iVoter, strNotification, sizeof(strNotification));
-
-				if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+				
+				// prevents GetConVarBool if we don't have a convar
+				if(!StrEqual(g_strVoteConVar[g_iCurrentVoteIndex],""))
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+
+					if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+					}
+					else
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+					}
+				
 				}
 				else
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+
+					ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "Yes", true);
+					ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
+
+					CPrintToChatAll("%s", strNotification);
+				
 				}
-
-				ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "Yes", true);
-				ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
-
-				CPrintToChatAll("%s", strNotification);
 			}
 		}
 		else if(StrEqual(strInfo, "No"))
@@ -1745,22 +1755,31 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
 				FormatVoterString(g_iCurrentVoteIndex, iVoter, strNotification, sizeof(strNotification));
-
-				if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+				
+				if(!StrEqual(g_strVoteConVar[g_iCurrentVoteIndex],""))
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+
+					if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+					}
+					else
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+					}
+				
 				}
 				else
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+
+					ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "No", true);
+					ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "no", true);
+
+					CPrintToChatAll("%s", strNotification);
+				
 				}
-
-				ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "No", true);
-				ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "no", true);
-
-				CPrintToChatAll("%s", strNotification);
 			}
 		}
 	}
