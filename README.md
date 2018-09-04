@@ -1,7 +1,8 @@
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 **Custom Votes Redux - Modified**
 =================================
 
- 
 
 This is a modified version of
 [ReFlexPoison](https://forums.alliedmods.net/member.php?u=149090)‘s [custom
