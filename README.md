@@ -1,7 +1,9 @@
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 **Custom Votes Redux - Modified**
 =================================
 
- 
 
 This is a modified version of
 [ReFlexPoison](https://forums.alliedmods.net/member.php?u=149090)‘s [custom

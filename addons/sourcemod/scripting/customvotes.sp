@@ -8,7 +8,7 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.12U"
+#define PLUGIN_VERSION "1.14U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -66,6 +66,10 @@ new String:g_strVoteTargetAuth[255];
 new String:g_strVoteTargetName[255];
 new String:g_strConfigFile[PLATFORM_MAX_PATH];
 new String:g_sLogPath[PLATFORM_MAX_PATH];
+// extras
+new Handle:CvarResetOnWaveFailed;
+new bool:bResetOnWaveFailed;
+new bool:IsTF2 = false;
 enum
 {
 	VoteType_Players = 0,
@@ -92,6 +96,8 @@ public Plugin:myinfo =
 public OnPluginStart()
 {
 	CreateConVar("sm_customvotes_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_NOTIFY);
+	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NONE, true, 0.0, true, 1.0); // reset max passes on wave failed
+	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
 	RegAdminCmd("sm_votemenu", Command_ChooseVote, 0, "Opens the vote menu");
@@ -110,10 +116,14 @@ public OnPluginStart()
 	if(g_hArrayRecentMaps == INVALID_HANDLE)
 		g_hArrayRecentMaps = CreateArray(MAX_NAME_LENGTH);
 		
+	DetectGame();
 	
 	// hook required for resetting total passes when the wave is lost (MVM)
 	// TF2 only
-	//HookEvent("mvm_wave_failed", WaveFailed);
+	if(IsTF2 == true)
+	{
+		HookEvent("mvm_wave_failed", WaveFailed);
+	}
 	
 	CreateLogFile();
 }
@@ -137,6 +147,22 @@ public OnMapStart()
 	CreateTimer(1.0, Timer_Second, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	
 	CreateLogFile();
+}
+
+public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String:strNewValue[] )
+{
+	bResetOnWaveFailed = GetConVarBool( CvarResetOnWaveFailed );
+}
+
+stock DetectGame()
+{
+	char game_mod[32];
+	GetGameFolderName(game_mod, sizeof(game_mod));
+	
+	if (strcmp(game_mod, "tf", false) == 0)
+	{
+		IsTF2 = true;
+	}
 }
 
 public OnLibraryAdded(const String:szName[])
@@ -1717,22 +1743,32 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
 				FormatVoterString(g_iCurrentVoteIndex, iVoter, strNotification, sizeof(strNotification));
-
-				if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+				
+				// prevents GetConVarBool if we don't have a convar
+				if(!StrEqual(g_strVoteConVar[g_iCurrentVoteIndex],""))
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+
+					if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+					}
+					else
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+					}
+				
 				}
 				else
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+
+					ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "Yes", true);
+					ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
+
+					CPrintToChatAll("%s", strNotification);
+				
 				}
-
-				ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "Yes", true);
-				ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
-
-				CPrintToChatAll("%s", strNotification);
 			}
 		}
 		else if(StrEqual(strInfo, "No"))
@@ -1745,22 +1781,31 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
 				FormatVoterString(g_iCurrentVoteIndex, iVoter, strNotification, sizeof(strNotification));
-
-				if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+				
+				if(!StrEqual(g_strVoteConVar[g_iCurrentVoteIndex],""))
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+
+					if(GetConVarBool(FindConVar(g_strVoteConVar[g_iCurrentVoteIndex])))
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "Off", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "off", true);
+					}
+					else
+					{
+						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
+						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+					}
+				
 				}
 				else
 				{
-					ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
-					ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
+
+					ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "No", true);
+					ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "no", true);
+
+					CPrintToChatAll("%s", strNotification);
+				
 				}
-
-				ReplaceString(strNotification, sizeof(strNotification), "{Yes|No}", "No", true);
-				ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "no", true);
-
-				CPrintToChatAll("%s", strNotification);
 			}
 		}
 	}
@@ -1780,14 +1825,16 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 }
 
 // Reset vote at wave failure.
-/* public Action:WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	//CPrintToChatAll("{fullred}[CUSTOMVOTES DEBUG]: {orange}Event: mvm_wave_failed"); // for debugging
-	for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+	if(bResetOnWaveFailed == true)
 	{
-		g_iVotePasses[iVote] = 0;
+		for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+		{
+			g_iVotePasses[iVote] = 0;
+		}
 	}
-} */
+}
 
 // ====[ FUNCTIONS ]===========================================================
 public Config_Load()
