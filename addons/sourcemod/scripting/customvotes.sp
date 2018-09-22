@@ -2384,13 +2384,11 @@ stock FormatVoterString(iVote, iVoter, String:strBuffer[], iBufferSize)
 	decl String:strVoter[MAX_NAME_LENGTH];
 	IntToString(iVoter, strVoter, sizeof(strVoter));
 
-	QuoteString(strVoter, sizeof(strVoter));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_INDEX}", strVoter, false);
 
 	decl String:strVoterId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iVoter), strVoterId, sizeof(strVoterId));
 
-	QuoteString(strVoterId, sizeof(strVoterId));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_ID}", strVoterId, false);
 
 	decl String:strVoterSteamId[MAX_NAME_LENGTH];
@@ -2434,11 +2432,9 @@ stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
 	{
 		decl String:strAntiGrief[255];
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetIndex);
-		QuoteString(strAntiGrief, sizeof(strAntiGrief));
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", g_strVoteTargetIndex, false);
 
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetId);
-		QuoteString(strAntiGrief, sizeof(strAntiGrief));
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_ID}", g_strVoteTargetId, false);
 
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetAuth);
@@ -2454,13 +2450,11 @@ stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
 	decl String:strTarget[MAX_NAME_LENGTH];
 	IntToString(iTarget, strTarget, sizeof(strTarget));
 
-	QuoteString(strTarget, sizeof(strTarget));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", strTarget, false);
 
 	decl String:strTargetId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iTarget), strTargetId, sizeof(strTargetId));
 
-	QuoteString(strTargetId, sizeof(strTargetId));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_ID}", strTargetId, false);
 
 	decl String:strTargetSteamId[MAX_NAME_LENGTH];
