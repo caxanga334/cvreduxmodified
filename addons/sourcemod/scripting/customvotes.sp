@@ -8,7 +8,7 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.14U"
+#define PLUGIN_VERSION "1.15U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -89,7 +89,7 @@ public Plugin:myinfo =
 	/* Special thanks to afk manager ( https://forums.alliedmods.net/showthread.php?p=708265 ) and sourcecmod anti-cheat developers.
 	I looked at their's plugin in order to learn how to add file logging. */
 	// Special thanks for those who contributed on github
-	// sneak-it ( https://github.com/caxanga334/cvreduxmodified/pull/1 )
+	// sneak-it ( https://github.com/caxanga334/cvreduxmodified/pull/1 || https://github.com/caxanga334/cvreduxmodified/pull/3 )
 }
 
 // ====[ FUNCTIONS ]===========================================================
@@ -2384,13 +2384,11 @@ stock FormatVoterString(iVote, iVoter, String:strBuffer[], iBufferSize)
 	decl String:strVoter[MAX_NAME_LENGTH];
 	IntToString(iVoter, strVoter, sizeof(strVoter));
 
-	QuoteString(strVoter, sizeof(strVoter));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_INDEX}", strVoter, false);
 
 	decl String:strVoterId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iVoter), strVoterId, sizeof(strVoterId));
 
-	QuoteString(strVoterId, sizeof(strVoterId));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_ID}", strVoterId, false);
 
 	decl String:strVoterSteamId[MAX_NAME_LENGTH];
@@ -2434,11 +2432,9 @@ stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
 	{
 		decl String:strAntiGrief[255];
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetIndex);
-		QuoteString(strAntiGrief, sizeof(strAntiGrief));
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", g_strVoteTargetIndex, false);
 
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetId);
-		QuoteString(strAntiGrief, sizeof(strAntiGrief));
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_ID}", g_strVoteTargetId, false);
 
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetAuth);
@@ -2454,13 +2450,11 @@ stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
 	decl String:strTarget[MAX_NAME_LENGTH];
 	IntToString(iTarget, strTarget, sizeof(strTarget));
 
-	QuoteString(strTarget, sizeof(strTarget));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", strTarget, false);
 
 	decl String:strTargetId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iTarget), strTargetId, sizeof(strTargetId));
 
-	QuoteString(strTargetId, sizeof(strTargetId));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_ID}", strTargetId, false);
 
 	decl String:strTargetSteamId[MAX_NAME_LENGTH];
