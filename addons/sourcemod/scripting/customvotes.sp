@@ -162,7 +162,9 @@ stock DetectGame()
 	if (strcmp(game_mod, "tf", false) == 0)
 	{
 		IsTF2 = true;
+		LogMessage("Game Detected: Team Fortress 2.");
 	}
+	LogMessage("Game Detected: Other.");
 }
 
 public OnLibraryAdded(const String:szName[])
