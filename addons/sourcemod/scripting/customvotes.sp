@@ -96,7 +96,7 @@ public Plugin:myinfo =
 public OnPluginStart()
 {
 	CreateConVar("sm_customvotes_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_NOTIFY);
-	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NONE, true, 0.0, true, 1.0); // reset max passes on wave failed
+	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // reset max passes on wave failed
 	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
@@ -164,7 +164,10 @@ stock DetectGame()
 		IsTF2 = true;
 		LogMessage("Game Detected: Team Fortress 2.");
 	}
-	LogMessage("Game Detected: Other.");
+	else
+	{
+		LogMessage("Game Detected: Other.");
+	}
 }
 
 public OnLibraryAdded(const String:szName[])
@@ -321,6 +324,26 @@ public OnClientDisconnect(iTarget)
 				for(new iSimple = 0; iSimple < MAX_VOTE_TYPES; iSimple++)
 					CheckVotesForSimple(iVote);
 			}
+		}
+	}
+	// Experimental vote evasion logging
+	if(g_iCurrentVoteTarget >= 1 && IsVoteInProgress()) // Do we have a target and the vote is in progress
+	{
+		if(iTarget == g_iCurrentVoteTarget) // the id of the player who just disconnected matches the vote target id.
+		{
+			// get target's name
+			decl String:LogstrTargetName[MAX_NAME_LENGTH];
+			GetClientName(iTarget, LogstrTargetName, sizeof(LogstrTargetName));
+			
+			// get target's SteamID
+			decl String:LstrTargetAuth[MAX_NAME_LENGTH];
+			GetClientAuthId(iTarget, AuthId_Steam2, LstrTargetAuth, sizeof(LstrTargetAuth));
+			
+			// Logging Vote
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Vote target disconnected while vote was in progress! The target was: %s ( %s ).",
+				LogstrTargetName,
+				LstrTargetAuth);
 		}
 	}
 }
@@ -1829,7 +1852,7 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 // Reset vote at wave failure.
 public Action:WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	if(bResetOnWaveFailed == true)
+	if(bResetOnWaveFailed)
 	{
 		for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 		{
