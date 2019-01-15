@@ -9,11 +9,20 @@ This is a modified version of
 [ReFlexPoison](https://forums.alliedmods.net/member.php?u=149090)‘s [custom
 votes redux](https://forums.alliedmods.net/showthread.php?t=235115) plugin.
 
-In this version, all votes are logged to a text file.
+Fixes and Features:
+* Added vote logging.
+* Added KZTimer support.
+* Now utilizes Multi-Colors to support more game chat colors.
+* Fixed default mapcycle resulting in an empty map list.
+* Increased the map limit to 1024.
+* Fixed call_notify not working and errors when a 'simple' vote is used without a convar as command.
+* Added option to reset max vote passes on wave failure (TF2-MVM only).
+* Fixed incorrectly adding quotes to vote results, making {VOTER_ID}, {VOTER_INDEX}, {TARGET_ID}, and {TARGET_INDEX} pretty much unusable.
+* Added vote evasion detection and logging. (WIP)
+* Auto ban on vote evasion. (Planned unreleased feature)
 
-Examples from my server:
 
- 
+Examples logs from my server:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Vote Type: List
