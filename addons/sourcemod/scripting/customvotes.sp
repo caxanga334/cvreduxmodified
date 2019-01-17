@@ -126,6 +126,7 @@ public OnPluginStart()
 	}
 	
 	CreateLogFile();
+	AutoExecConfig(true, "sm_customvotes_redux");
 }
 
 public OnMapStart()
