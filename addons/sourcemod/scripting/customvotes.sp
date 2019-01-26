@@ -9,11 +9,10 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.16U"
+#define PLUGIN_VERSION "1.16.1U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
-#define SBPP_AVAILABLE()	(GetFeatureStatus(FeatureType_Native, "SBPP_BanPlayer") == FeatureStatus_Available)
 
 // ====[ HANDLES ]=============================================================
 new Handle:g_hArrayVotePlayerSteamID[MAXPLAYERS + 1][MAX_VOTE_TYPES];
@@ -52,6 +51,7 @@ new bool:g_bVoteForMap[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_MAPS];
 new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new bool:g_bKzTimer = false;
+new bool:g_bSourceBans = false;
 new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -195,6 +195,11 @@ public OnLibraryAdded(const String:szName[])
 	{
 		g_bKzTimer = true;
 	}
+	
+	if (StrEqual(szName, "sourcebans++"))
+	{
+		g_bSourceBans = true;
+	}
 }
 
 public OnLibraryRemoved(const String:szName[])
@@ -202,6 +207,11 @@ public OnLibraryRemoved(const String:szName[])
 	if (StrEqual(szName, "KZTimer"))
 	{
 		g_bKzTimer = false;
+	}
+	
+	if (StrEqual(szName, "sourcebans++"))
+	{
+		g_bSourceBans = false;
 	}
 }
 
@@ -366,13 +376,18 @@ public OnClientDisconnect(iTarget)
 				
 			if(bAutoBanEnabled)
 			{
-				if(SBPP_AVAILABLE() && bAutoBanType) // SourceBans is available and the plugin is told to use it
+				if(g_bSourceBans && bAutoBanType) // SourceBans is available and the plugin is told to use it
 				{
 					SBPP_BanPlayer(0, iTarget, iAutoBanDuration, "Vote Evasion");
 				}
 				else
 				{
 					BanClient(iTarget, iAutoBanDuration, BANFLAG_AUTO, "Vote Evasion", "Vote Evasion", "CVR");
+				}
+				
+				if(!g_bSourceBans && bAutoBanType) // Plugin is told to use sourcebans but sourcebans is not available
+				{
+					LogError("Unable to ban using SourceBans++.");
 				}
 			}
 		}
