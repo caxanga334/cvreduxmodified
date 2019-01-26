@@ -3,6 +3,7 @@
 // ====[ INCLUDES ]============================================================
 #include <sourcemod>
 #include <multicolors>
+#include <sourcebanspp>
 #undef REQUIRE_PLUGIN
 #tryinclude <KZTimer>
 
@@ -12,6 +13,7 @@
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
+#define SBPP_AVAILABLE()	(GetFeatureStatus(FeatureType_Native, "SBPP_BanPlayer") == FeatureStatus_Available)
 
 // ====[ HANDLES ]=============================================================
 new Handle:g_hArrayVotePlayerSteamID[MAXPLAYERS + 1][MAX_VOTE_TYPES];
@@ -68,7 +70,13 @@ new String:g_strConfigFile[PLATFORM_MAX_PATH];
 new String:g_sLogPath[PLATFORM_MAX_PATH];
 // extras
 new Handle:CvarResetOnWaveFailed;
+new Handle:CvarAutoBanEnabled;
+new Handle:CvarAutoBanDuration;
+new Handle:CvarAutoBanType;
 new bool:bResetOnWaveFailed;
+new bool:bAutoBanEnabled;
+new bool:bAutoBanType;
+new iAutoBanDuration;
 new bool:IsTF2 = false;
 enum
 {
@@ -98,6 +106,13 @@ public OnPluginStart()
 	CreateConVar("sm_customvotes_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_NOTIFY);
 	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // reset max passes on wave failed
 	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	CvarAutoBanEnabled = CreateConVar("sm_cv_autoban", "0", "Should the plugin automatically ban players who evade votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // ban players evading votes?
+	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	CvarAutoBanType = CreateConVar("sm_cv_bantype", "0", "Ban type to be used for vote evasion bans? 0 - Local | 1 - MySQL (SourceBans)", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // should we use mysql banning?
+	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	CvarAutoBanDuration = CreateConVar("sm_cv_banduration", "15", "How long (in minutes) should the plugin ban someone for evading votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 525600.0); // the ban duration
+	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
 	RegAdminCmd("sm_votemenu", Command_ChooseVote, 0, "Opens the vote menu");
@@ -153,6 +168,9 @@ public OnMapStart()
 public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String:strNewValue[] )
 {
 	bResetOnWaveFailed = GetConVarBool( CvarResetOnWaveFailed );
+	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
+	bAutoBanType = GetConVarBool( CvarAutoBanType );
+	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
 }
 
 stock DetectGame()
@@ -345,6 +363,18 @@ public OnClientDisconnect(iTarget)
 				"[Custom Votes] Vote target disconnected while vote was in progress! The target was: %s ( %s ).",
 				LogstrTargetName,
 				LstrTargetAuth);
+				
+			if(bAutoBanEnabled)
+			{
+				if(SBPP_AVAILABLE() && bAutoBanType) // SourceBans is available and the plugin is told to use it
+				{
+					SBPP_BanPlayer(0, iTarget, iAutoBanDuration, "Vote Evasion");
+				}
+				else
+				{
+					BanClient(iTarget, iAutoBanDuration, BANFLAG_AUTO, "Vote Evasion", "Vote Evasion", "CVR");
+				}
+			}
 		}
 	}
 }
