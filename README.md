@@ -53,7 +53,10 @@ L 04/28/2018 - 14:30:43: [Custom Votes] Vote Ban player started by TF2 GAMER (
 STEAM_ID ) targeting rees123 ( STEAM_ID ).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- 
+**Download**
+=================================
+For stable version, check the [releases](https://github.com/caxanga334/cvreduxmodified/releases) tab.
+For development version, download the repository.
 
 Feel free to report bugs/give suggestions.
 
