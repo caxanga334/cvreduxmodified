@@ -4,12 +4,13 @@
 #include <sourcemod>
 #include <multicolors>
 #include <sourcebanspp>
+#include <nativevotes>
 #undef REQUIRE_PLUGIN
 #tryinclude <KZTimer>
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.16.1U"
+#define PLUGIN_VERSION "1.17-dev"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -52,6 +53,7 @@ new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new bool:g_bKzTimer = false;
 new bool:g_bSourceBans = false;
+new bool:g_bNativeVotes = false;
 new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -200,6 +202,11 @@ public OnLibraryAdded(const String:szName[])
 	{
 		g_bSourceBans = true;
 	}
+	
+	if (StrEqual(szName, "nativevotes"))
+	{
+		g_bNativeVotes = true;
+	}
 }
 
 public OnLibraryRemoved(const String:szName[])
@@ -212,6 +219,11 @@ public OnLibraryRemoved(const String:szName[])
 	if (StrEqual(szName, "sourcebans++"))
 	{
 		g_bSourceBans = false;
+	}
+	
+	if (StrEqual(szName, "nativevotes"))
+	{
+		g_bNativeVotes = false;
 	}
 }
 

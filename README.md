@@ -1,5 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+![Downloads](https://img.shields.io/github/downloads/caxanga334/cvreduxmodified/latest/total.svg?style=flat-square)
 
 **Custom Votes Redux - Modified**
 =================================
