@@ -4,11 +4,12 @@
 #include <sourcemod>
 #include <multicolors>
 #include <sourcebanspp>
+#include <nativevotes>
 #undef REQUIRE_PLUGIN
 #tryinclude <KZTimer>
 
 // ====[ DEFINES ]=============================================================
-#define PLUGIN_NAME "Custom Votes"
+#define PLUGIN_NAME "Custom Votes /w Native Votes"
 #define PLUGIN_VERSION "1.17-dev"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
@@ -52,6 +53,7 @@ new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new bool:g_bKzTimer = false;
 new bool:g_bSourceBans = false;
+new bool:g_bNativeVotes = false;
 new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -189,6 +191,32 @@ stock DetectGame()
 	}
 }
 
+bool IsVoteRunning()
+{
+	if(g_bNativeVotes)
+	{
+		if(NativeVotes_IsVoteInProgress())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if(IsVoteInProgress())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
 public OnLibraryAdded(const String:szName[])
 {
 	if (StrEqual(szName, "KZTimer"))
@@ -199,6 +227,11 @@ public OnLibraryAdded(const String:szName[])
 	if (StrEqual(szName, "sourcebans++"))
 	{
 		g_bSourceBans = true;
+	}
+	
+	if (StrEqual(szName, "nativevotes"))
+	{
+		g_bNativeVotes = true;
 	}
 }
 
@@ -212,6 +245,11 @@ public OnLibraryRemoved(const String:szName[])
 	if (StrEqual(szName, "sourcebans++"))
 	{
 		g_bSourceBans = false;
+	}
+	
+	if (StrEqual(szName, "nativevotes"))
+	{
+		g_bNativeVotes = false;
 	}
 }
 
@@ -356,7 +394,7 @@ public OnClientDisconnect(iTarget)
 		}
 	}
 	// Experimental vote evasion logging
-	if(g_iCurrentVoteTarget >= 1 && IsVoteInProgress()) // Do we have a target and the vote is in progress
+	if(g_iCurrentVoteTarget >= 1 && IsVoteRunning()) // Do we have a target and the vote is in progress
 	{
 		if(iTarget == g_iCurrentVoteTarget) // the id of the player who just disconnected matches the vote target id.
 		{
@@ -821,23 +859,13 @@ public Vote_Players(iVote, iVoter, iTarget)
 			LstrTargetAuth);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_Players);
+	new Handle:hMenu = NativeVotes_Create(VoteHandler_Players, NativeVotesType_Custom_YesNo, NATIVEVOTES_ACTIONS_DEFAULT | MenuAction_Select);
 
 	decl String:strTarget[MAX_NAME_LENGTH];
 	decl String:strBuffer[MAX_NAME_LENGTH + 12];
 
 	GetClientName(iTarget, strTarget, sizeof(strTarget));
 	Format(strBuffer, sizeof(strBuffer), "%s (%s)", g_strVoteName[iVote], strTarget);
-
-	SetMenuTitle(hMenu, "%s", strBuffer);
-	SetMenuExitButton(hMenu, false);
-
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-
-	AddMenuItem(hMenu, "Yes", "Yes");
-	AddMenuItem(hMenu, "No", "No");
 
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteTarget = iTarget;
@@ -847,19 +875,22 @@ public Vote_Players(iVote, iVoter, iTarget)
 	GetClientAuthId(iTarget, AuthId_Steam2, g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth));
 	strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), strTarget);
 
-	VoteMenu(hMenu, iPlayers, iTotal, 30);
+	NativeVotes_SetInitiator(hMenu, iVoter);
+	NativeVotes_SetDetails(hMenu, strBuffer);
+	NativeVotes_DisplayToAll(hMenu, 30);
 }
 
 public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
-		CloseHandle(hMenu);
+		NativeVotes_Close(hMenu);
 	}
+
 	if(iAction == MenuAction_Select)
 	{
 		decl String:strInfo[16];
-		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
+		NativeVotes_GetItem(hMenu, iParam2, strInfo, sizeof(strInfo));
 
 		if(StrEqual(strInfo, "Yes", false))
 		{
