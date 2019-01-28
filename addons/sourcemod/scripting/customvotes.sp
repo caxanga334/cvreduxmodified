@@ -75,10 +75,12 @@ new Handle:CvarResetOnWaveFailed;
 new Handle:CvarAutoBanEnabled;
 new Handle:CvarAutoBanDuration;
 new Handle:CvarAutoBanType;
+new Handle:CvarUseNativeVotes;
 new bool:bResetOnWaveFailed;
 new bool:bAutoBanEnabled;
 new bool:bAutoBanType;
 new iAutoBanDuration;
+new bool:bUseNativeVotes;
 new bool:IsTF2 = false;
 enum
 {
@@ -109,11 +111,13 @@ public OnPluginStart()
 	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // reset max passes on wave failed
 	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
 	CvarAutoBanEnabled = CreateConVar("sm_cv_autoban", "0", "Should the plugin automatically ban players who evade votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // ban players evading votes?
-	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	HookConVarChange( CvarAutoBanEnabled, OnConVarChanged );
 	CvarAutoBanType = CreateConVar("sm_cv_bantype", "0", "Ban type to be used for vote evasion bans? 0 - Local | 1 - MySQL (SourceBans)", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // should we use mysql banning?
-	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	HookConVarChange( CvarAutoBanType, OnConVarChanged );
 	CvarAutoBanDuration = CreateConVar("sm_cv_banduration", "15", "How long (in minutes) should the plugin ban someone for evading votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 525600.0); // the ban duration
-	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
+	HookConVarChange( CvarAutoBanDuration, OnConVarChanged );
+	CvarAutoBanEnabled = CreateConVar("sm_cv_nativevotes", "0", "Should the plugin use native votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // ban players evading votes?
+	HookConVarChange( CvarAutoBanEnabled, OnConVarChanged );
 	
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
@@ -173,6 +177,7 @@ public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String
 	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
 	bAutoBanType = GetConVarBool( CvarAutoBanType );
 	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
+	bUseNativeVotes = GetConVarBool( CvarUseNativeVotes );
 }
 
 stock DetectGame()
@@ -833,7 +838,14 @@ public Vote_Players(iVote, iVoter, iTarget)
 			LstrTargetAuth);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_Players);
+	if(g_bNativeVotes && bUseNativeVotes)
+	{ // using native votes
+		new Handle:hMenu = NativeVotes_Create(VoteHandler_Players, NativeVotesType_Custom_YesNo, NATIVEVOTES_ACTIONS_DEFAULT | MenuAction_Select);
+	}
+	else
+	{
+		new Handle:hMenu = CreateMenu(VoteHandler_Players);
+	}
 
 	decl String:strTarget[MAX_NAME_LENGTH];
 	decl String:strBuffer[MAX_NAME_LENGTH + 12];
@@ -841,15 +853,18 @@ public Vote_Players(iVote, iVoter, iTarget)
 	GetClientName(iTarget, strTarget, sizeof(strTarget));
 	Format(strBuffer, sizeof(strBuffer), "%s (%s)", g_strVoteName[iVote], strTarget);
 
-	SetMenuTitle(hMenu, "%s", strBuffer);
-	SetMenuExitButton(hMenu, false);
+	if(!g_bNativeVotes && !bUseNativeVotes)
+	{
+		SetMenuTitle(hMenu, "%s", strBuffer);
+		SetMenuExitButton(hMenu, false);
 
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
+		AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
+		AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
+		AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 
-	AddMenuItem(hMenu, "Yes", "Yes");
-	AddMenuItem(hMenu, "No", "No");
+		AddMenuItem(hMenu, "Yes", "Yes");
+		AddMenuItem(hMenu, "No", "No");
+	}
 
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteTarget = iTarget;
@@ -859,23 +874,46 @@ public Vote_Players(iVote, iVoter, iTarget)
 	GetClientAuthId(iTarget, AuthId_Steam2, g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth));
 	strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), strTarget);
 
-	VoteMenu(hMenu, iPlayers, iTotal, 30);
+	if(g_bNativeVotes && bUseNativeVotes)
+	{ // using native votes
+		NativeVotes_SetInitiator(hMenu, iVoter);
+		NativeVotes_SetDetails(hMenu, strBuffer);
+		NativeVotes_DisplayToAll(hMenu, 30);
+	}
+	else
+	{
+		VoteMenu(hMenu, iPlayers, iTotal, 30);
+	}
 }
 
 public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
-		CloseHandle(hMenu);
+		if(g_bNativeVotes && bUseNativeVotes)
+		{ // using native votes
+			NativeVotes_Close(hMenu);
+		}
+		else
+		{
+			CloseHandle(hMenu);
+		}
 		return;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
 		decl String:strInfo[16];
-		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
+		if(g_bNativeVotes && bUseNativeVotes)
+		{ // using native votes
+			NativeVotes_GetItem(hMenu, iParam2, strInfo, sizeof(strInfo));
+		}
+		else
+		{
+			GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
+		}
 
-		if(StrEqual(strInfo, "Yes"))
+		if(StrEqual(strInfo, "Yes", false))
 		{
 			g_bVoteForTarget[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = true;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
@@ -893,7 +931,7 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 				CPrintToChatAll("%s", strNotification);
 			}
 		}
-		else if(StrEqual(strInfo, "No"))
+		else if(StrEqual(strInfo, "No", false))
 		{
 			g_bVoteForTarget[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = false;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
