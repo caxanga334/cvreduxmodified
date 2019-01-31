@@ -23,7 +23,9 @@ If applicable, add screenshots to help explain your problem.
 **Game Server**
 * Sourcemod version
 * Metamod version
+* Custom Votes plugin version
 * Game
+
 
 
 **Additional context**
