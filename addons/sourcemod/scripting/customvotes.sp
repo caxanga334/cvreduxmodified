@@ -3,8 +3,8 @@
 // ====[ INCLUDES ]============================================================
 #include <sourcemod>
 #include <multicolors>
-#include <sourcebanspp>
 #undef REQUIRE_PLUGIN
+#include <sourcebanspp>
 #tryinclude <KZTimer>
 
 // ====[ DEFINES ]=============================================================
