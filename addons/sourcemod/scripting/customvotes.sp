@@ -69,11 +69,13 @@ new String:g_strVoteTargetName[255];
 new String:g_strConfigFile[PLATFORM_MAX_PATH];
 new String:g_sLogPath[PLATFORM_MAX_PATH];
 // extras
+new Handle:CvarDebugMode;
 new Handle:CvarResetOnWaveFailed;
 new Handle:CvarAutoBanEnabled;
 new Handle:CvarAutoBanDuration;
 new Handle:CvarAutoBanType;
 new Handle:CvarCancelVoteGameEnd;
+new bool:bDebugMode;
 new bool:bResetOnWaveFailed;
 new bool:bAutoBanEnabled;
 new bool:bAutoBanType;
@@ -117,6 +119,8 @@ public OnPluginStart()
 	HookConVarChange( CvarAutoBanDuration, OnConVarChanged );
 	CvarCancelVoteGameEnd = CreateConVar("sm_cv_cancelvote", "1", "Cancel pending votes on round end?", FCVAR_NONE, true, 0.0, true, 1.0); // Cancel votes using events, default enabled due to OnMapEnd being fired after OnClientDisconnect
 	HookConVarChange( CvarCancelVoteGameEnd, OnConVarChanged );
+	CvarDebugMode = CreateConVar("sm_cv_debug", "0", "Enable debug mode?", FCVAR_NONE, true, 0.0, true, 1.0); // Debug mode
+	HookConVarChange( CvarDebugMode, OnConVarChanged );
 	
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
@@ -1932,6 +1936,12 @@ public Action:TF_WaveFailed(Handle:event, const String:name[], bool:dontBroadcas
 			g_iVotePasses[iVote] = 0;
 		}
 	}
+	
+	if(bDebugMode) // If debug is enabled, log events
+	{
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] DEBUG: Event TF_WaveFailed.");
+	}
 }
 // Cancel votes on Game Over (TF2)
 public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dontBroadcast)
@@ -1945,6 +1955,12 @@ public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dont
 				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
 		}
 	}
+	
+	if(bDebugMode) // If debug is enabled, log events
+	{
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] DEBUG: Event TF_TeamPlayerGameOver.");
+	}
 }
 // Cancel votes on round end (CSGO)
 public Action:CSGO_RoundEnd(Handle:event, const String:name[], bool:dontBroadcast)
@@ -1957,6 +1973,12 @@ public Action:CSGO_RoundEnd(Handle:event, const String:name[], bool:dontBroadcas
 			LogToFileEx(g_sLogPath,
 				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
 		}
+	}
+	
+	if(bDebugMode) // If debug is enabled, log events
+	{
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] DEBUG: Event CSGO_RoundEnd.");
 	}
 }
 
