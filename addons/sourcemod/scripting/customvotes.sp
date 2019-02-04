@@ -9,7 +9,7 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.16.2U-dev"
+#define PLUGIN_VERSION "1.16.3U-dev"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -73,11 +73,14 @@ new Handle:CvarResetOnWaveFailed;
 new Handle:CvarAutoBanEnabled;
 new Handle:CvarAutoBanDuration;
 new Handle:CvarAutoBanType;
+new Handle:CvarCancelVoteGameEnd;
 new bool:bResetOnWaveFailed;
 new bool:bAutoBanEnabled;
 new bool:bAutoBanType;
+new bool:bCancelVoteGameEnd;
 new iAutoBanDuration;
 new bool:IsTF2 = false;
+new bool:IsCSGO = false;
 enum
 {
 	VoteType_Players = 0,
@@ -104,14 +107,16 @@ public Plugin:myinfo =
 public OnPluginStart()
 {
 	CreateConVar("sm_customvotes_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_NOTIFY);
-	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // reset max passes on wave failed
+	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NONE, true, 0.0, true, 1.0); // reset max passes on wave failed
 	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
-	CvarAutoBanEnabled = CreateConVar("sm_cv_autoban", "0", "Should the plugin automatically ban players who evade votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // ban players evading votes?
+	CvarAutoBanEnabled = CreateConVar("sm_cv_autoban", "0", "Should the plugin automatically ban players who evade votes?", FCVAR_NONE, true, 0.0, true, 1.0); // ban players evading votes?
 	HookConVarChange( CvarAutoBanEnabled, OnConVarChanged );
-	CvarAutoBanType = CreateConVar("sm_cv_bantype", "0", "Ban type to be used for vote evasion bans? 0 - Local | 1 - MySQL (SourceBans)", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 1.0); // should we use mysql banning?
+	CvarAutoBanType = CreateConVar("sm_cv_bantype", "0", "Ban type to be used for vote evasion bans? 0 - Local | 1 - MySQL (SourceBans)", FCVAR_NONE, true, 0.0, true, 1.0); // should we use mysql banning?
 	HookConVarChange( CvarAutoBanType, OnConVarChanged );
-	CvarAutoBanDuration = CreateConVar("sm_cv_banduration", "15", "How long (in minutes) should the plugin ban someone for evading votes?", FCVAR_NOTIFY | FCVAR_REPLICATED, true, 0.0, true, 525600.0); // the ban duration
+	CvarAutoBanDuration = CreateConVar("sm_cv_banduration", "15", "How long (in minutes) should the plugin ban someone for evading votes?", FCVAR_NONE, true, 0.0, true, 525600.0); // the ban duration
 	HookConVarChange( CvarAutoBanDuration, OnConVarChanged );
+	CvarCancelVoteGameEnd = CreateConVar("sm_cv_cancelvote", "1", "Cancel pending votes on round end?", FCVAR_NONE, true, 0.0, true, 1.0); // Cancel votes using events, default enabled due to OnMapEnd being fired after OnClientDisconnect
+	HookConVarChange( CvarCancelVoteGameEnd, OnConVarChanged );
 	
 
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
@@ -137,7 +142,12 @@ public OnPluginStart()
 	// TF2 only
 	if(IsTF2 == true)
 	{
-		HookEvent("mvm_wave_failed", WaveFailed);
+		HookEvent("mvm_wave_failed", TF_WaveFailed);
+		HookEvent("teamplay_game_over", TF_TeamPlayerGameOver);
+	}
+	if(IsCSGO == true)
+	{
+		HookEvent("round_end", CSGO_RoundEnd);
 	}
 	
 	CreateLogFile();
@@ -167,11 +177,14 @@ public OnMapStart()
 
 public OnMapEnd()
 {
-	if(IsVoteInProgress()) // is vote in progress?
+	if((!IsCSGO || !IsTF2) && !bCancelVoteGameEnd)
 	{
-		CancelVote(); // cancel any running votes on map end.
-		LogToFileEx(g_sLogPath,
-			"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		if(IsVoteInProgress()) // is vote in progress?
+		{
+			CancelVote(); // cancel any running votes on map end.
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		}
 	}
 }
 
@@ -181,6 +194,7 @@ public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String
 	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
 	bAutoBanType = GetConVarBool( CvarAutoBanType );
 	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
+	bCancelVoteGameEnd = GetConVarBool( CvarCancelVoteGameEnd );
 }
 
 stock DetectGame()
@@ -192,6 +206,11 @@ stock DetectGame()
 	{
 		IsTF2 = true;
 		LogMessage("Game Detected: Team Fortress 2.");
+	}
+	else if (strcmp(game_mod, "csgo", false) == 0)
+	{
+		IsCSGO = true;
+		LogMessage("Game Detected: Counter-Strike: Global Offensive.");
 	}
 	else
 	{
@@ -1904,13 +1923,39 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 }
 
 // Reset vote at wave failure.
-public Action:WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:TF_WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if(bResetOnWaveFailed)
 	{
 		for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 		{
 			g_iVotePasses[iVote] = 0;
+		}
+	}
+}
+// Cancel votes on Game Over (TF2)
+public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	if(bCancelVoteGameEnd)
+	{
+		if(IsVoteInProgress()) // is vote in progress?
+		{
+			CancelVote(); // cancel any running votes on map end.
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		}
+	}
+}
+// Cancel votes on round end (CSGO)
+public Action:CSGO_RoundEnd(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	if(bCancelVoteGameEnd)
+	{
+		if(IsVoteInProgress()) // is vote in progress?
+		{
+			CancelVote(); // cancel any running votes on map end.
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
 		}
 	}
 }
