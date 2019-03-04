@@ -151,7 +151,7 @@ public OnPluginStart()
 	}
 	if(IsCSGO == true)
 	{
-		HookEvent("round_end", CSGO_RoundEnd);
+		HookEvent("cs_win_panel_match", CSGO_MapEnd);
 	}
 	
 	CreateLogFile();
@@ -1963,7 +1963,7 @@ public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dont
 	}
 }
 // Cancel votes on round end (CSGO)
-public Action:CSGO_RoundEnd(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -1978,7 +1978,17 @@ public Action:CSGO_RoundEnd(Handle:event, const String:name[], bool:dontBroadcas
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event CSGO_RoundEnd.");
+			"[Custom Votes] DEBUG: Event CSGO_MapEnd.");
+	}
+}
+
+public Action:OnLogAction(Handle:source, Identity:ident, client, target, const String:message[])
+{
+	if((StrContains(message, "changed map to") != -1) && bCancelVoteGameEnd && IsVoteInProgress())
+	{
+		CancelVote(); // cancel any running votes on map end.
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] Map manually changed while a vote was in progress, canceling vote.");
 	}
 }
 
