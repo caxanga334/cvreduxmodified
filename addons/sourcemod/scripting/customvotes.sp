@@ -9,7 +9,7 @@
 
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.16.3U-dev"
+#define PLUGIN_VERSION "1.16.3U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -102,7 +102,7 @@ public Plugin:myinfo =
 	/* Special thanks to afk manager ( https://forums.alliedmods.net/showthread.php?p=708265 ) and sourcecmod anti-cheat developers.
 	I looked at their's plugin in order to learn how to add file logging. */
 	// Special thanks for those who contributed on github
-	// sneak-it ( https://github.com/caxanga334/cvreduxmodified/pull/1 || https://github.com/caxanga334/cvreduxmodified/pull/3 )
+	// sneak-it ( https://github.com/caxanga334/cvreduxmodified/pulls?utf8=%E2%9C%93&q=is%3Apr+user%3Asneak-it )
 }
 
 // ====[ FUNCTIONS ]===========================================================
@@ -147,7 +147,9 @@ public OnPluginStart()
 	if(IsTF2 == true)
 	{
 		HookEvent("mvm_wave_failed", TF_WaveFailed);
-		HookEvent("teamplay_game_over", TF_TeamPlayerGameOver);
+		HookEvent("teamplay_win_panel", TF_TeamPlayWinPanel);
+		HookEvent("arena_win_panel", TF_ArenaWinPanel);
+		HookEvent("pve_win_panel", TF_MVMWinPanel);
 	}
 	if(IsCSGO == true)
 	{
@@ -1944,7 +1946,7 @@ public Action:TF_WaveFailed(Handle:event, const String:name[], bool:dontBroadcas
 	}
 }
 // Cancel votes on Game Over (TF2)
-public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -1959,7 +1961,43 @@ public Action:TF_TeamPlayerGameOver(Handle:event, const String:name[], bool:dont
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_TeamPlayerGameOver.");
+			"[Custom Votes] DEBUG: Event TF_TeamPlayWinPanel.");
+	}
+}
+public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	if(bCancelVoteGameEnd)
+	{
+		if(IsVoteInProgress()) // is vote in progress?
+		{
+			CancelVote(); // cancel any running votes on map end.
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		}
+	}
+	
+	if(bDebugMode) // If debug is enabled, log events
+	{
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] DEBUG: Event TF_ArenaWinPanel.");
+	}
+}
+public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	if(bCancelVoteGameEnd)
+	{
+		if(IsVoteInProgress()) // is vote in progress?
+		{
+			CancelVote(); // cancel any running votes on map end.
+			LogToFileEx(g_sLogPath,
+				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		}
+	}
+	
+	if(bDebugMode) // If debug is enabled, log events
+	{
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] DEBUG: Event TF_MVMWinPanel.");
 	}
 }
 // Cancel votes on round end (CSGO)
