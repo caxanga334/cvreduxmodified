@@ -201,6 +201,7 @@ public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String
 	bAutoBanType = GetConVarBool( CvarAutoBanType );
 	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
 	bCancelVoteGameEnd = GetConVarBool( CvarCancelVoteGameEnd );
+	bDebugMode = GetConVarBool( CvarDebugMode );
 }
 
 stock DetectGame()
