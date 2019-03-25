@@ -1962,7 +1962,7 @@ public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBr
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_TeamPlayWinPanel.");
+			"[Custom Votes] DEBUG: Event TF_TeamPlayWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
 public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
@@ -1980,7 +1980,7 @@ public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroad
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_ArenaWinPanel.");
+			"[Custom Votes] DEBUG: Event TF_ArenaWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
 public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
@@ -1998,7 +1998,7 @@ public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadca
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_MVMWinPanel.");
+			"[Custom Votes] DEBUG: Event TF_MVMWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
 // Cancel votes on round end (CSGO)
@@ -2017,7 +2017,7 @@ public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event CSGO_MapEnd.");
+			"[Custom Votes] DEBUG: Event CSGO_MapEnd. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
 
