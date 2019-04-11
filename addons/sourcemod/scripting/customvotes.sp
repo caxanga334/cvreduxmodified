@@ -52,6 +52,7 @@ new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new bool:g_bKzTimer = false;
 new bool:g_bSourceBans = false;
+new bool:g_bMapEnded = false;
 new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -163,6 +164,7 @@ public OnPluginStart()
 public OnMapStart()
 {
 	g_iMapTime = 0;
+	g_bMapEnded = false; // map started, set it to false
 
 	decl String:strMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strMap, sizeof(strMap));
@@ -183,6 +185,11 @@ public OnMapStart()
 
 public OnMapEnd()
 {
+	if(!g_bMapEnded)
+	{
+		g_bMapEnded = true;
+	}
+	
 	if((!IsCSGO || !IsTF2) && !bCancelVoteGameEnd)
 	{
 		if(IsVoteInProgress()) // is vote in progress?
@@ -1951,6 +1958,7 @@ public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBr
 {
 	if(bCancelVoteGameEnd)
 	{
+		g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -1969,6 +1977,7 @@ public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroad
 {
 	if(bCancelVoteGameEnd)
 	{
+		g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -1987,6 +1996,7 @@ public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadca
 {
 	if(bCancelVoteGameEnd)
 	{
+		g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -2006,6 +2016,7 @@ public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
+		g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -2025,6 +2036,7 @@ public Action:OnLogAction(Handle:source, Identity:ident, client, target, const S
 {
 	if((StrContains(message, "changed map to") != -1) && bCancelVoteGameEnd && IsVoteInProgress())
 	{
+		g_bMapEnded = true;
 		CancelVote(); // cancel any running votes on map end.
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] Map manually changed while a vote was in progress, canceling vote.");
@@ -2286,8 +2298,14 @@ public Config_Load()
 
 public bool:CheckVotesForTarget(iVote, iTarget)
 {
+
 	new iVotes = GetVotesForTarget(iVote, iTarget);
 	new iRequired = GetRequiredVotes(iVote);
+	
+	if(g_bMapEnded) // if the map ended, always return false
+	{
+		return false;
+	}
 
 	if(iVotes >= iRequired)
 	{
@@ -2341,6 +2359,11 @@ public bool:CheckVotesForMap(iVote, iMap)
 {
 	new iVotes = GetVotesForMap(iVote, iMap);
 	new iRequired = GetRequiredVotes(iVote);
+	
+	if(g_bMapEnded) // if the map ended, always return false
+	{
+		return false;
+	}
 
 	if(iVotes >= iRequired)
 	{
@@ -2394,6 +2417,11 @@ public bool:CheckVotesForOption(iVote, iOption)
 {
 	new iVotes = GetVotesForOption(iVote, iOption);
 	new iRequired = GetRequiredVotes(iVote);
+	
+	if(g_bMapEnded) // if the map ended, always return false
+	{
+		return false;
+	}
 
 	if(iVotes >= iRequired)
 	{
@@ -2442,6 +2470,11 @@ public bool:CheckVotesForSimple(iVote)
 {
 	new iVotes = GetVotesForSimple(iVote);
 	new iRequired = GetRequiredVotes(iVote);
+	
+	if(g_bMapEnded) // if the map ended, always return false
+	{
+		return false;
+	}
 
 	if(iVotes >= iRequired)
 	{
