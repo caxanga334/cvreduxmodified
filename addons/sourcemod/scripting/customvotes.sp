@@ -41,6 +41,8 @@ new g_iVoteMapRecent[MAX_VOTE_TYPES];
 new g_iVoteCurrent[MAXPLAYERS + 1];
 new g_iVoteRemaining[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new g_iVoteLast[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+new g_iVoteAllLast[MAX_VOTE_TYPES]; // same as g_iVoteLast but applies to all players
+new g_iVoteAllCooldown[MAX_VOTE_TYPES]; // cooldown between votes for ALL players
 new bool:g_bVoteCallVote[MAX_VOTE_TYPES];
 new bool:g_bVotePlayersBots[MAX_VOTE_TYPES];
 new bool:g_bVotePlayersTeam[MAX_VOTE_TYPES];
@@ -52,7 +54,7 @@ new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 new bool:g_bKzTimer = false;
 new bool:g_bSourceBans = false;
-new bool:g_bMapEnded = false;
+//new bool:g_bMapEnded = false;
 new Float:g_flVoteRatio[MAX_VOTE_TYPES];
 new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -164,7 +166,7 @@ public OnPluginStart()
 public OnMapStart()
 {
 	g_iMapTime = 0;
-	g_bMapEnded = false; // map started, set it to false
+	//g_bMapEnded = false; // map started, set it to false
 
 	decl String:strMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strMap, sizeof(strMap));
@@ -525,6 +527,10 @@ public Menu_ChooseVote(iVoter)
 		// Cooldown
 		else if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 			iFlags = ITEMDRAW_DISABLED;
+			
+		// Cooldown (All Players)
+		else if(iTime - g_iVoteAllLast[iVote] < g_iVoteAllCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
+			iFlags = ITEMDRAW_DISABLED;
 
 		IntToString(iVote, strIndex, sizeof(strIndex));
 
@@ -624,6 +630,12 @@ public Menu_PlayersVote(iVote, iVoter)
 	if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 	{
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
+		return;
+	}
+	
+	if(iTime - g_iVoteAllLast[iVote] < g_iVoteAllCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
+	{
+		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteAllCooldown[iVote] - (iTime - g_iVoteAllLast[iVote]));
 		return;
 	}
 
@@ -730,6 +742,7 @@ public MenuHandler_PlayersVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2
 		}
 
 		g_iVoteLast[iVoter][iVote] = GetTime();
+		g_iVoteAllLast[iVote] = GetTime();
 		if(g_bVoteCallVote[iVote])
 		{
 			Vote_Players(iVote, iVoter, iTarget);
@@ -1002,6 +1015,12 @@ public Menu_MapVote(iVote, iVoter)
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
 		return;
 	}
+	
+	if(iTime - g_iVoteAllLast[iVote] < g_iVoteAllCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
+	{
+		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteAllCooldown[iVote] - (iTime - g_iVoteAllLast[iVote]));
+		return;
+	}
 
 	new Handle:hMenu = CreateMenu(MenuHandler_MapVote);
 	SetMenuTitle(hMenu, "%s:", g_strVoteName[iVote]);
@@ -1161,6 +1180,7 @@ public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		}
 
 		g_iVoteLast[iVoter][iVote] = GetTime();
+		g_iVoteAllLast[iVote] = GetTime();
 		CheckVotesForMap(iVote, iMap);
 		Menu_ChooseVote(iVoter);
 	}
@@ -1372,6 +1392,12 @@ public Menu_ListVote(iVote, iVoter)
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
 		return;
 	}
+	
+	if(iTime - g_iVoteAllLast[iVote] < g_iVoteAllCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
+	{
+		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteAllCooldown[iVote] - (iTime - g_iVoteAllLast[iVote]));
+		return;
+	}
 
 	new Handle:hMenu = CreateMenu(MenuHandler_ListVote);
 	SetMenuTitle(hMenu, "%s:", g_strVoteName[iVote]);
@@ -1482,6 +1508,7 @@ public MenuHandler_ListVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		}
 
 		g_iVoteLast[iVoter][iVote] = GetTime();
+		g_iVoteAllLast[iVote] = GetTime();
 		CheckVotesForOption(iVote, iOption);
 		Menu_ChooseVote(iVoter);
 	}
@@ -1688,6 +1715,12 @@ public CastSimpleVote(iVote, iVoter)
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
 		return;
 	}
+	
+	if(iTime - g_iVoteAllLast[iVote] < g_iVoteAllCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
+	{
+		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteAllCooldown[iVote] - (iTime - g_iVoteAllLast[iVote]));
+		return;
+	}
 
 	if(g_iVoteMaxCalls[iVote] > 0 && !CheckCommandAccess(iVoter, "customvotes_maxvotes", ADMFLAG_GENERIC))
 	{
@@ -1696,6 +1729,7 @@ public CastSimpleVote(iVote, iVoter)
 	}
 
 	g_iVoteLast[iVoter][iVote] = iTime;
+	g_iVoteAllLast[iVote] = iTime;
 	if(g_bVoteCallVote[iVote])
 	{
 		Vote_Simple(iVote, iVoter);
@@ -2102,6 +2136,7 @@ public Config_Load()
 		{
 			g_iVoteRemaining[iVoter][iVote] = 0;
 			g_iVoteLast[iVoter][iVote] = 0;
+			g_iVoteAllLast[iVote] = 0;
 			for(new iTarget = 1; iTarget <= MaxClients; iTarget++)
 			{
 				g_bVoteForTarget[iTarget][iVote][iVoter] = false;
@@ -2180,6 +2215,9 @@ public Config_Load()
 
 		// Delay in seconds before players can vote again after casting a selection
 		g_iVoteCooldown[iVote] = KvGetNum(hKeyValues, "cooldown");
+		
+		// Delay in seconds before all players can vote again after casting a selection
+		g_iVoteAllCooldown[iVote] = KvGetNum(hKeyValues, "cooldownall");
 
 		// Minimum votes required for the vote to pass (Overrides ratio)
 		g_iVoteMinimum[iVote] = KvGetNum(hKeyValues, "minimum");
