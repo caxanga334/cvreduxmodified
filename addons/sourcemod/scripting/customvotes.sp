@@ -185,10 +185,10 @@ public OnMapStart()
 
 public OnMapEnd()
 {
-	if(!g_bMapEnded)
+/* 	if(!g_bMapEnded)
 	{
 		g_bMapEnded = true;
-	}
+	} */
 	
 	if((!IsCSGO || !IsTF2) && !bCancelVoteGameEnd)
 	{
@@ -1958,7 +1958,7 @@ public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBr
 {
 	if(bCancelVoteGameEnd)
 	{
-		g_bMapEnded = true;
+		//g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -1977,7 +1977,7 @@ public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroad
 {
 	if(bCancelVoteGameEnd)
 	{
-		g_bMapEnded = true;
+		//g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -1996,7 +1996,7 @@ public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadca
 {
 	if(bCancelVoteGameEnd)
 	{
-		g_bMapEnded = true;
+		//g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -2016,7 +2016,7 @@ public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
-		g_bMapEnded = true;
+		//g_bMapEnded = true;
 		if(IsVoteInProgress()) // is vote in progress?
 		{
 			CancelVote(); // cancel any running votes on map end.
@@ -2036,7 +2036,7 @@ public Action:OnLogAction(Handle:source, Identity:ident, client, target, const S
 {
 	if((StrContains(message, "changed map to") != -1) && bCancelVoteGameEnd && IsVoteInProgress())
 	{
-		g_bMapEnded = true;
+		//g_bMapEnded = true;
 		CancelVote(); // cancel any running votes on map end.
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] Map manually changed while a vote was in progress, canceling vote.");
@@ -2302,10 +2302,10 @@ public bool:CheckVotesForTarget(iVote, iTarget)
 	new iVotes = GetVotesForTarget(iVote, iTarget);
 	new iRequired = GetRequiredVotes(iVote);
 	
-	if(g_bMapEnded) // if the map ended, always return false
+/* 	if(g_bMapEnded) // if the map ended, always return false
 	{
 		return false;
-	}
+	} */
 
 	if(iVotes >= iRequired)
 	{
@@ -2360,10 +2360,10 @@ public bool:CheckVotesForMap(iVote, iMap)
 	new iVotes = GetVotesForMap(iVote, iMap);
 	new iRequired = GetRequiredVotes(iVote);
 	
-	if(g_bMapEnded) // if the map ended, always return false
+/* 	if(g_bMapEnded) // if the map ended, always return false
 	{
 		return false;
-	}
+	} */
 
 	if(iVotes >= iRequired)
 	{
@@ -2418,10 +2418,10 @@ public bool:CheckVotesForOption(iVote, iOption)
 	new iVotes = GetVotesForOption(iVote, iOption);
 	new iRequired = GetRequiredVotes(iVote);
 	
-	if(g_bMapEnded) // if the map ended, always return false
+/* 	if(g_bMapEnded) // if the map ended, always return false
 	{
 		return false;
-	}
+	} */
 
 	if(iVotes >= iRequired)
 	{
@@ -2471,10 +2471,10 @@ public bool:CheckVotesForSimple(iVote)
 	new iVotes = GetVotesForSimple(iVote);
 	new iRequired = GetRequiredVotes(iVote);
 	
-	if(g_bMapEnded) // if the map ended, always return false
+/* 	if(g_bMapEnded) // if the map ended, always return false
 	{
 		return false;
-	}
+	} */
 
 	if(iVotes >= iRequired)
 	{
