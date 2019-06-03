@@ -75,12 +75,14 @@ new String:g_sLogPath[PLATFORM_MAX_PATH];
 new Handle:CvarDebugMode;
 new Handle:CvarResetOnWaveFailed;
 new Handle:CvarAutoBanEnabled;
+new Handle:CvarAutoBanWarning;
 new Handle:CvarAutoBanDuration;
 new Handle:CvarAutoBanType;
 new Handle:CvarCancelVoteGameEnd;
 new bool:bDebugMode;
 new bool:bResetOnWaveFailed;
 new bool:bAutoBanEnabled;
+new bool:bAutoBanWarning;
 new bool:bAutoBanType;
 new bool:bCancelVoteGameEnd;
 new iAutoBanDuration;
@@ -116,6 +118,8 @@ public OnPluginStart()
 	HookConVarChange( CvarResetOnWaveFailed, OnConVarChanged );
 	CvarAutoBanEnabled = CreateConVar("sm_cv_autoban", "0", "Should the plugin automatically ban players who evade votes?", FCVAR_NONE, true, 0.0, true, 1.0); // ban players evading votes?
 	HookConVarChange( CvarAutoBanEnabled, OnConVarChanged );
+	CvarAutoBanWarning = CreateConVar("sm_cv_autoban_warning", "1", "Should the plugin warn targeted players if they will be banned upon disconnecting? Requires sm_cv_autoban 1.", FCVAR_NONE, true, 0.0, true, 1.0); // warn players about ban evasion enforcement?
+	HookConVarChange( CvarAutoBanWarning, OnConVarChanged );
 	CvarAutoBanType = CreateConVar("sm_cv_bantype", "0", "Ban type to be used for vote evasion bans? 0 - Local | 1 - MySQL (SourceBans)", FCVAR_NONE, true, 0.0, true, 1.0); // should we use mysql banning?
 	HookConVarChange( CvarAutoBanType, OnConVarChanged );
 	CvarAutoBanDuration = CreateConVar("sm_cv_banduration", "15", "How long (in minutes) should the plugin ban someone for evading votes?", FCVAR_NONE, true, 0.0, true, 525600.0); // the ban duration
@@ -207,6 +211,7 @@ public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String
 {
 	bResetOnWaveFailed = GetConVarBool( CvarResetOnWaveFailed );
 	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
+	bAutoBanWarning = GetConVarBool( CvarAutoBanWarning );
 	bAutoBanType = GetConVarBool( CvarAutoBanType );
 	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
 	bCancelVoteGameEnd = GetConVarBool( CvarCancelVoteGameEnd );
@@ -902,6 +907,11 @@ public Vote_Players(iVote, iVoter, iTarget)
 	IntToString(GetClientUserId(iTarget), g_strVoteTargetId, sizeof(g_strVoteTargetId));
 	GetClientAuthId(iTarget, AuthId_Steam2, g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth));
 	strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), strTarget);
+	
+	if(bAutoBanEnabled && bAutoBanWarning)
+	{
+		CPrintToChat(iTarget, "%t", "Ban Warning");
+	}
 
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
 }
