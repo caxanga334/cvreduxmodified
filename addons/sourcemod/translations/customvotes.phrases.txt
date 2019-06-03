@@ -4,6 +4,11 @@
 	{
 		"en"	"[SM] You have already voted for this item."
 	}
+	
+	"Ban Warning"
+	{
+		"en"	"[SM] You will be banned if you disconnect while this vote is in progress!"
+	}
 
 	"No Valid Clients"
 	{
