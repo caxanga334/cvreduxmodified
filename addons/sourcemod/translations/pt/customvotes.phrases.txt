@@ -4,7 +4,12 @@
 	{
 		"pt"	"[SM] Você já votou neste item."
 	}
-
+	
+	"Ban Warning"
+	{
+		"pt"	"[SM] Você será banido se desconectar enquanto essa votação está em progresso!"
+	}
+	
 	"No Valid Clients"
 	{
 		"pt"	"[SM] Nenhum cliente disponível."
