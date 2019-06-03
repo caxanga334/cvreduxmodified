@@ -62,8 +62,3 @@ For development version, download the repository.
 Feel free to report bugs/give suggestions.
 
 For contributions, please use pull requests.
-
- 
-
- 
-Discord account: Anonymous Player#4908
