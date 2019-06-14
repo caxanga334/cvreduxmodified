@@ -6,7 +6,7 @@
 #undef REQUIRE_PLUGIN
 #include <sourcebanspp>
 #tryinclude <KZTimer>
-
+#include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
 #define PLUGIN_VERSION "1.16.4U-dev"
@@ -809,7 +809,7 @@ public Vote_Players(iVote, iVoter, iTarget)
 	for(new i = 1; i <= MaxClients; i++)
 	{
 		g_bVoteForTarget[i][iVote][iTarget] = false;
-		if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget)
+		if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget && !AFKM_IsClientAFK(i))
 		{
 			if(g_bVotePlayersTeam[iVote])
 			{
@@ -1210,7 +1210,7 @@ public Vote_Map(iVote, iVoter, iMap)
 	for(new i = 1; i <= MaxClients; i++)
 	{
 		g_bVoteForMap[i][iVote][iMap] = false;
-		if(IsClientInGame(i) && !IsFakeClient(i))
+		if(IsClientInGame(i) && !IsFakeClient(i) && !AFKM_IsClientAFK(i))
 			iPlayers[iTotal++] = i;
 	}
 
@@ -1538,7 +1538,7 @@ public Vote_List(iVote, iVoter, iOption)
 	for(new i = 1; i <= MaxClients; i++)
 	{
 		g_bVoteForOption[i][iVote][iOption] = false;
-		if(IsClientInGame(i) && !IsFakeClient(i))
+		if(IsClientInGame(i) && !IsFakeClient(i) && !AFKM_IsClientAFK(i))
 			iPlayers[iTotal++] = i;
 	}
 
@@ -1790,8 +1790,8 @@ public Vote_Simple(iVote, iVoter)
 	for(new i = 1; i <= MaxClients; i++)
 	{
 		g_bVoteForSimple[i][iVote] = false;
-		if(IsClientInGame(i) && !IsFakeClient(i))
-			iPlayers[iTotal++] = i;
+		if(IsClientInGame(i) && !IsFakeClient(i) && !AFKM_IsClientAFK(i))
+                iPlayers[iTotal++] = i;
 	}
 
 	if(g_iVoteMinimum[iVote] > iTotal || iTotal <= 0)
