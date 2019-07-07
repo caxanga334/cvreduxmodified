@@ -62,3 +62,10 @@ For development version, download the repository.
 Feel free to report bugs/give suggestions.
 
 For contributions, please use pull requests.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Compiling**
+=================================
+* Download the plugin source from the reposity
+* Get the latest version of kztimer.inc from [here](https://bitbucket.org/kztimerglobalteam/kztimerglobal/src/master/scripting/include/kztimer.inc).
+* Get the latest version of afk_manager.inc from [here](https://forums.alliedmods.net/showthread.php?p=708265).
