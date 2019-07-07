@@ -1,0 +1,50 @@
+﻿"Phrases"
+{
+	"Already Voted"
+	{
+		"chi"	"[SM] 这个投票你已经投过了."
+	}
+	
+	"Ban Warning"
+	{
+		"chi"	"[SM] 如果你现在断开连接,你将会被ban!"
+	}
+
+	"No Valid Clients"
+	{
+		"chi"	"[SM] 没有可用的玩家."
+	}
+
+	"No Votes Remaining"
+	{
+		"chi"	"[SM] 你可能不能继续投这个投票了."
+	}
+
+	"Voting No Longer Available"
+	{
+		"chi"	"[SM] 所有人不能继续投这个投票了."
+	}
+
+	"Not Enough Valid Clients"
+	{
+		"chi"	"[SM] 没有足够的玩家投票."
+	}
+
+	"Votes Remaining"
+	{
+		"#format"	"{1:i}"
+		"chi"		"[SM] 投票 {1} 冷却中 时间:(s)秒."
+	}
+
+	"Vote Delay"
+	{
+		"#format"	"{1:i}"
+		"chi"		"[SM] 在投票之前你必须多等 {1} 秒."
+	}
+
+	"Vote Cooldown"
+	{
+		"#format"	"{1:i}"
+		"chi"		"[SM] 在继续投票之前你必须多等 {1} 秒"
+	}
+}
