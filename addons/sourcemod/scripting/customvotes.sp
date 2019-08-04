@@ -5,7 +5,7 @@
 #include <multicolors>
 #undef REQUIRE_PLUGIN
 #include <sourcebanspp>
-#tryinclude <KZTimer>
+#tryinclude <kztimer>
 #include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
