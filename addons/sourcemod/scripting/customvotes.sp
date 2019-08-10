@@ -931,10 +931,17 @@ public Vote_Players(iVote, iVoter, iTarget)
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-
-	AddMenuItem(hMenu, "Yes", "Yes");
+	
+	if(GetRandomInt(1, 2) == 1)
+	{
+		AddMenuItem(hMenu, "Yes", "Yes");
+		AddMenuItem(hMenu, "No", "No");
+	}
+	else
+	{
 	AddMenuItem(hMenu, "No", "No");
-
+	AddMenuItem(hMenu, "Yes", "Yes");
+	}
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteTarget = iTarget;
 
@@ -1338,8 +1345,16 @@ public Vote_Map(iVote, iVoter, iMap)
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "Yes", "Yes");
+	if(GetRandomInt(1, 2) == 1)
+	{
+		AddMenuItem(hMenu, "Yes", "Yes");
+		AddMenuItem(hMenu, "No", "No");
+	}
+	else
+	{
 	AddMenuItem(hMenu, "No", "No");
+	AddMenuItem(hMenu, "Yes", "Yes");
+	}
 
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteMap = iMap;
@@ -1676,8 +1691,16 @@ public Vote_List(iVote, iVoter, iOption)
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "Yes", "Yes");
+	if(GetRandomInt(1, 2) == 1)
+	{
+		AddMenuItem(hMenu, "Yes", "Yes");
+		AddMenuItem(hMenu, "No", "No");
+	}
+	else
+	{
 	AddMenuItem(hMenu, "No", "No");
+	AddMenuItem(hMenu, "Yes", "Yes");
+	}
 
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteOption = iOption;
@@ -1948,8 +1971,16 @@ public Vote_Simple(iVote, iVoter)
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
 	AddMenuItem(hMenu, "", " ", ITEMDRAW_NOTEXT);
-	AddMenuItem(hMenu, "Yes", "Yes");
+	if(GetRandomInt(1, 2) == 1)
+	{
+		AddMenuItem(hMenu, "Yes", "Yes");
+		AddMenuItem(hMenu, "No", "No");
+	}
+	else
+	{
 	AddMenuItem(hMenu, "No", "No");
+	AddMenuItem(hMenu, "Yes", "Yes");
+	}
 
 	g_iCurrentVoteIndex = iVote;
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
