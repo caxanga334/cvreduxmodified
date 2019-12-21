@@ -1,7 +1,6 @@
-#pragma semicolon 1
-
 // ====[ INCLUDES ]============================================================
 #include <sourcemod>
+#include <sdktools>
 #include <multicolors>
 #undef REQUIRE_PLUGIN
 #include <sourcebanspp>
@@ -9,90 +8,93 @@
 #include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.16.4U-dev"
+#define PLUGIN_VERSION "1.17.0U-dev"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
+#pragma semicolon 1;
+#pragma newdecls required;
 
 // ====[ HANDLES ]=============================================================
-new Handle:g_hArrayVotePlayerSteamID[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new Handle:g_hArrayVotePlayerIP[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new Handle:g_hArrayVoteOptionName[MAX_VOTE_TYPES];
-new Handle:g_hArrayVoteOptionResult[MAX_VOTE_TYPES];
-new Handle:g_hArrayVoteMapList[MAX_VOTE_TYPES];
-new Handle:g_hArrayRecentMaps;
+Handle g_hArrayVotePlayerSteamID[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+Handle g_hArrayVotePlayerIP[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+Handle g_hArrayVoteOptionName[MAX_VOTE_TYPES];
+Handle g_hArrayVoteOptionResult[MAX_VOTE_TYPES];
+Handle g_hArrayVoteMapList[MAX_VOTE_TYPES];
+Handle g_hArrayRecentMaps;
 
 // ====[ VARIABLES ]===========================================================
-new g_iMapTime;
-new g_iVoteCount;
-new g_iCurrentVoteIndex;
-new g_iCurrentVoteTarget;
-new g_iCurrentVoteMap;
-new g_iCurrentVoteOption;
-new iAfkTime;
-new g_iVoteType[MAX_VOTE_TYPES];
-new g_iVoteDelay[MAX_VOTE_TYPES];
-new g_iVoteCooldown[MAX_VOTE_TYPES];
-new g_iVoteMinimum[MAX_VOTE_TYPES];
-new g_iVoteImmunity[MAX_VOTE_TYPES];
-new g_iVoteMaxCalls[MAX_VOTE_TYPES];
-new g_iVotePasses[MAX_VOTE_TYPES];
-new g_iVoteMaxPasses[MAX_VOTE_TYPES];
-new g_iVoteMapRecent[MAX_VOTE_TYPES];
-new g_iVoteCurrent[MAXPLAYERS + 1];
-new g_iVoteRemaining[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new g_iVoteLast[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new g_iVoteAllLast[MAX_VOTE_TYPES]; // same as g_iVoteLast but applies to all players
-new g_iVoteAllCooldown[MAX_VOTE_TYPES]; // cooldown between votes for ALL players
-new bool:g_bVoteCallVote[MAX_VOTE_TYPES];
-new bool:g_bVotePlayersBots[MAX_VOTE_TYPES];
-new bool:g_bVotePlayersTeam[MAX_VOTE_TYPES];
-new bool:g_bVoteMapCurrent[MAX_VOTE_TYPES];
-new bool:g_bVoteMultiple[MAX_VOTE_TYPES];
-new bool:g_bVoteForTarget[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAXPLAYERS + 1];
-new bool:g_bVoteForMap[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_MAPS];
-new bool:g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
-new bool:g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
-new bool:g_bKzTimer = false;
-new bool:g_bSourceBans = false;
-new bool:g_bAfkManager = false;
-//new bool:g_bMapEnded = false;
-new Float:g_flVoteRatio[MAX_VOTE_TYPES];
-new String:g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
-new String:g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
-new String:g_strVoteOverride[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
-new String:g_strVoteCommand[MAX_VOTE_TYPES][255];
-new String:g_strVoteChatTrigger[MAX_VOTE_TYPES][255];
-new String:g_strVoteStartNotify[MAX_VOTE_TYPES][255];
-new String:g_strVoteCallNotify[MAX_VOTE_TYPES][255];
-new String:g_strVotePassNotify[MAX_VOTE_TYPES][255];
-new String:g_strVoteFailNotify[MAX_VOTE_TYPES][255];
-new String:g_strVoteTargetIndex[255];
-new String:g_strVoteTargetId[255];
-new String:g_strVoteTargetAuth[255];
-new String:g_strVoteTargetName[255];
-new String:g_strConfigFile[PLATFORM_MAX_PATH];
-new String:g_sLogPath[PLATFORM_MAX_PATH];
+int g_iMapTime;
+int g_iVoteCount;
+int g_iCurrentVoteIndex;
+int g_iCurrentVoteTarget;
+int g_iCurrentVoteMap;
+int g_iCurrentVoteOption;
+int iAfkTime;
+int g_iVoteType[MAX_VOTE_TYPES];
+int g_iVoteDelay[MAX_VOTE_TYPES];
+int g_iVoteCooldown[MAX_VOTE_TYPES];
+int g_iVoteMinimum[MAX_VOTE_TYPES];
+int g_iVoteImmunity[MAX_VOTE_TYPES];
+int g_iVoteMaxCalls[MAX_VOTE_TYPES];
+int g_iVotePasses[MAX_VOTE_TYPES];
+int g_iVoteMaxPasses[MAX_VOTE_TYPES];
+int g_iVoteMapRecent[MAX_VOTE_TYPES];
+int g_iVoteCurrent[MAXPLAYERS + 1];
+int g_iVoteRemaining[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+int g_iVoteLast[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+int g_iVoteAllLast[MAX_VOTE_TYPES]; // same as g_iVoteLast but applies to all players
+int g_iVoteAllCooldown[MAX_VOTE_TYPES]; // cooldown between votes for ALL players
+bool g_bVoteCallVote[MAX_VOTE_TYPES];
+bool g_bVotePlayersBots[MAX_VOTE_TYPES];
+bool g_bVotePlayersTeam[MAX_VOTE_TYPES];
+bool g_bVoteMapCurrent[MAX_VOTE_TYPES];
+bool g_bVoteMultiple[MAX_VOTE_TYPES];
+bool g_bVoteForTarget[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAXPLAYERS + 1];
+bool g_bVoteForMap[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_MAPS];
+bool g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
+bool g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
+bool g_bKzTimer = false;
+bool g_bSourceBans = false;
+bool g_bAfkManager = false;
+//bool g_bMapEnded = false;
+float g_flVoteRatio[MAX_VOTE_TYPES];
+char g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
+char g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
+char g_strVoteOverride[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
+char g_strVoteCommand[MAX_VOTE_TYPES][255];
+char g_strVoteChatTrigger[MAX_VOTE_TYPES][255];
+char g_strVoteStartNotify[MAX_VOTE_TYPES][255];
+char g_strVoteCallNotify[MAX_VOTE_TYPES][255];
+char g_strVotePassNotify[MAX_VOTE_TYPES][255];
+char g_strVoteFailNotify[MAX_VOTE_TYPES][255];
+char g_strVoteTargetIndex[255];
+char g_strVoteTargetId[255];
+char g_strVoteTargetAuth[255];
+char g_strVoteTargetName[255];
+char g_strConfigFile[PLATFORM_MAX_PATH];
+char g_sLogPath[PLATFORM_MAX_PATH];
 // extras
-new Handle:CvarDebugMode;
-new Handle:CvarResetOnWaveFailed;
-new Handle:CvarAutoBanEnabled;
-new Handle:CvarAutoBanWarning;
-new Handle:CvarAutoBanDuration;
-new Handle:CvarAutoBanType;
-new Handle:CvarAfkTime;
-new Handle:CvarAfkManager;
-new Handle:CvarCancelVoteGameEnd;
-new bool:bDebugMode;
-new bool:bResetOnWaveFailed;
-new bool:bAutoBanEnabled;
-new bool:bAutoBanWarning;
-new bool:bAutoBanType;
-new bool:bAfkManagerEnable;
-new bool:bCancelVoteGameEnd;
-new iAutoBanDuration;
-new bool:IsTF2 = false;
-new bool:IsCSGO = false;
+Handle CvarDebugMode;
+Handle CvarResetOnWaveFailed;
+Handle CvarAutoBanEnabled;
+Handle CvarAutoBanWarning;
+Handle CvarAutoBanDuration;
+Handle CvarAutoBanType;
+Handle CvarAfkTime;
+Handle CvarAfkManager;
+Handle CvarCancelVoteGameEnd;
+bool bDebugMode;
+bool bResetOnWaveFailed;
+bool bAutoBanEnabled;
+bool bAutoBanWarning;
+bool bAutoBanType;
+bool bAfkManagerEnable;
+bool bCancelVoteGameEnd;
+int iAutoBanDuration;
+bool IsTF2 = false;
+bool IsCSGO = false;
+bool IsSyn = false;
 enum
 {
 	VoteType_Players = 0,
@@ -102,7 +104,7 @@ enum
 }
 
 // ====[ PLUGIN ]==============================================================
-public Plugin:myinfo =
+public Plugin myinfo =
 {
 	name = PLUGIN_NAME,
 	author = "ReFlexPoison,Anonymous Player",
@@ -116,7 +118,7 @@ public Plugin:myinfo =
 }
 
 // ====[ FUNCTIONS ]===========================================================
-public OnPluginStart()
+public void OnPluginStart()
 {
 	CreateConVar("sm_customvotes_version", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_NOTIFY);
 	CvarResetOnWaveFailed = CreateConVar("sm_cv_tf2_reset_wavefailed", "0", "Reset maxpasses on wave failed?", FCVAR_NONE, true, 0.0, true, 1.0); // reset max passes on wave failed
@@ -140,6 +142,7 @@ public OnPluginStart()
 	
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
 	RegAdminCmd("sm_votemenu", Command_ChooseVote, 0, "Opens the vote menu");
+	RegConsoleCmd("changelevel", ChangeLevelCmdEnd);
 
 	LoadTranslations("core.phrases");
 	LoadTranslations("common.phrases");
@@ -175,12 +178,12 @@ public OnPluginStart()
 	AutoExecConfig(true, "sm_customvotes_redux");
 }
 
-public OnMapStart()
+public void OnMapStart()
 {
 	g_iMapTime = 0;
 	//g_bMapEnded = false; // map started, set it to false
 
-	decl String:strMap[MAX_NAME_LENGTH];
+	char strMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strMap, sizeof(strMap));
 
 	if(GetArraySize(g_hArrayRecentMaps) <= 0)
@@ -190,6 +193,11 @@ public OnMapStart()
 		ShiftArrayUp(g_hArrayRecentMaps, 0);
 		SetArrayString(g_hArrayRecentMaps, 0, strMap);
 	}
+	
+	if (IsSyn)
+	{
+		HookEntityOutput("trigger_changelevel","OnChangeLevel",ChangeLevelEnd);
+	}
 
 	Config_Load();
 	CreateTimer(1.0, Timer_Second, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
@@ -197,7 +205,7 @@ public OnMapStart()
 	CreateLogFile();
 }
 
-public OnMapEnd()
+public void OnMapEnd()
 {
 /* 	if(!g_bMapEnded)
 	{
@@ -215,7 +223,43 @@ public OnMapEnd()
 	}
 }
 
-public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String:strNewValue[] )
+public Action ChangeLevelEnd(const char[] output, int caller, int activator, float delay)
+{
+	if ((IsValidEntity(caller)) && (IsEntNetworkable(caller)))
+	{
+		char clschk[32];
+		GetEntityClassname(caller,clschk,sizeof(clschk));
+		if (StrEqual(clschk,"trigger_changelevel",false))
+		{
+			if (!bCancelVoteGameEnd)
+			{
+				if(IsVoteInProgress()) // is vote in progress?
+				{
+					CancelVote(); // cancel any running votes on map end.
+					LogToFileEx(g_sLogPath, "[Custom Votes] Map end while a vote was in progress, canceling vote.");
+				}
+			}
+		}
+	}
+}
+
+public Action ChangeLevelCmdEnd(int client, int args)
+{
+	if ((IsSyn) && (client == 0) && (args > 0))
+	{
+		if (!bCancelVoteGameEnd)
+		{
+			if(IsVoteInProgress()) // is vote in progress?
+			{
+				CancelVote(); // cancel any running votes on map end.
+				LogToFileEx(g_sLogPath, "[Custom Votes] Map end while a vote was in progress, canceling vote.");
+			}
+		}
+	}
+	return Plugin_Continue;
+}
+
+public void OnConVarChanged( Handle hConVar, const char[] strOldValue, const char[] strNewValue )
 {
 	bResetOnWaveFailed = GetConVarBool( CvarResetOnWaveFailed );
 	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
@@ -228,7 +272,7 @@ public OnConVarChanged( Handle:hConVar, const String:strOldValue[], const String
 	iAfkTime = GetConVarBool( CvarAfkTime );
 }
 
-stock DetectGame()
+stock void DetectGame()
 {
 	char game_mod[32];
 	GetGameFolderName(game_mod, sizeof(game_mod));
@@ -243,13 +287,18 @@ stock DetectGame()
 		IsCSGO = true;
 		LogMessage("Game Detected: Counter-Strike: Global Offensive.");
 	}
+	else if (strcmp(game_mod, "synergy", false) == 0)
+	{
+		IsSyn = true;
+		LogMessage("Game Detected: Synergy.");
+	}
 	else
 	{
 		LogMessage("Game Detected: Other.");
 	}
 }
 
-public OnLibraryAdded(const String:szName[])
+public void OnLibraryAdded(const char[] szName)
 {
 	if (StrEqual(szName, "KZTimer"))
 	{
@@ -266,7 +315,7 @@ public OnLibraryAdded(const String:szName[])
 	}
 }
 
-public OnLibraryRemoved(const String:szName[])
+public void OnLibraryRemoved(const char[] szName)
 {
 	if (StrEqual(szName, "KZTimer"))
 	{
@@ -283,22 +332,22 @@ public OnLibraryRemoved(const String:szName[])
 	}
 }
 
-public OnClientConnected(iTarget)
+public void OnClientConnected(int iTarget)
 {
 	g_iVoteCurrent[iTarget] = -1;
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 	{
 		g_iVoteRemaining[iTarget][iVote] = g_iVoteMaxCalls[iVote];
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 		{
 			g_bVoteForTarget[iVoter][iVote][iTarget] = false;
 			g_bVoteForTarget[iTarget][iVote][iVoter] = false;
 		}
 
-		for(new iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
+		for(int iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
 			g_bVoteForMap[iTarget][iVote][iMap] = false;
 
-		for(new iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
+		for(int iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
 			g_bVoteForOption[iTarget][iVote][iOption] = false;
 
 		g_bVoteForSimple[iTarget][iVote] = false;
@@ -310,14 +359,14 @@ public OnClientConnected(iTarget)
 			ClearArray(g_hArrayVotePlayerIP[iTarget][iVote]);
 	}
 
-	decl String:strClientIP[MAX_NAME_LENGTH];
+	char strClientIP[MAX_NAME_LENGTH];
 	if(!GetClientIP(iTarget, strClientIP, sizeof(strClientIP)))
 		return;
 
-	decl String:strSavedIP[MAX_NAME_LENGTH];
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	char strSavedIP[MAX_NAME_LENGTH];
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
-		for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+		for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 		{
 			if(g_bVoteForTarget[iVoter][iVote][iTarget])
 				break;
@@ -325,7 +374,7 @@ public OnClientConnected(iTarget)
 			if(g_hArrayVotePlayerIP[iVoter][iVote] == INVALID_HANDLE)
 				continue;
 
-			for(new iIP = 0; iIP < GetArraySize(g_hArrayVotePlayerIP[iVoter][iVote]); iIP++)
+			for(int iIP = 0; iIP < GetArraySize(g_hArrayVotePlayerIP[iVoter][iVote]); iIP++)
 			{
 				GetArrayString(g_hArrayVotePlayerIP[iVoter][iVote], iIP, strSavedIP, sizeof(strSavedIP));
 				if(StrEqual(strSavedIP, strClientIP))
@@ -337,16 +386,16 @@ public OnClientConnected(iTarget)
 		}
 	}
 
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 		CheckVotesForTarget(iVote, iTarget);
 }
 
-public OnClientAuthorized(iTarget, const String:strTargetSteamId[])
+public void OnClientAuthorized(int iTarget, const char[] strTargetSteamId)
 {
-	decl String:strClientAuth[MAX_NAME_LENGTH];
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	char strClientAuth[MAX_NAME_LENGTH];
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
-		for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+		for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 		{
 			if(g_bVoteForTarget[iVoter][iVote][iTarget])
 				break;
@@ -354,7 +403,7 @@ public OnClientAuthorized(iTarget, const String:strTargetSteamId[])
 			if(g_hArrayVotePlayerSteamID[iVoter][iVote] == INVALID_HANDLE)
 				continue;
 
-			for(new iSteamId = 1; iSteamId < GetArraySize(g_hArrayVotePlayerSteamID[iVoter][iVote]); iSteamId++)
+			for(int iSteamId = 1; iSteamId < GetArraySize(g_hArrayVotePlayerSteamID[iVoter][iVote]); iSteamId++)
 			{
 				GetArrayString(g_hArrayVotePlayerSteamID[iVoter][iVote], iSteamId, strClientAuth, sizeof(strClientAuth));
 				if(StrEqual(strTargetSteamId, strClientAuth))
@@ -366,26 +415,26 @@ public OnClientAuthorized(iTarget, const String:strTargetSteamId[])
 		}
 	}
 
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 		CheckVotesForTarget(iVote, iTarget);
 }
 
-public OnClientDisconnect(iTarget)
+public void OnClientDisconnect(int iTarget)
 {
 	g_iVoteCurrent[iTarget] = -1;
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 	{
 		g_iVoteRemaining[iTarget][iVote] = g_iVoteMaxCalls[iVote];
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 		{
 			g_bVoteForTarget[iVoter][iVote][iTarget] = false;
 			g_bVoteForTarget[iTarget][iVote][iVoter] = false;
 		}
 
-		for(new iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
+		for(int iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
 			g_bVoteForMap[iTarget][iVote][iMap] = false;
 
-		for(new iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
+		for(int iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
 			g_bVoteForOption[iTarget][iVote][iOption] = false;
 
 		g_bVoteForSimple[iTarget][iVote] = false;
@@ -397,28 +446,28 @@ public OnClientDisconnect(iTarget)
 			ClearArray(g_hArrayVotePlayerIP[iTarget][iVote]);
 	}
 
-	for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+	for(int iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 	{
 		switch(g_iVoteType[iVote])
 		{
 			case VoteType_Players:
 			{
-				for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+				for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 					CheckVotesForTarget(iVote, iVoter);
 			}
 			case VoteType_Map:
 			{
-				for(new iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
+				for(int iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
 					CheckVotesForMap(iVote, iMap);
 			}
 			case VoteType_List:
 			{
-				for(new iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
+				for(int iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
 					CheckVotesForOption(iVote, iOption);
 			}
 			case VoteType_Simple:
 			{
-				for(new iSimple = 0; iSimple < MAX_VOTE_TYPES; iSimple++)
+				for(int iSimple = 0; iSimple < MAX_VOTE_TYPES; iSimple++)
 					CheckVotesForSimple(iVote);
 			}
 		}
@@ -429,11 +478,11 @@ public OnClientDisconnect(iTarget)
 		if(iTarget == g_iCurrentVoteTarget) // the id of the player who just disconnected matches the vote target id.
 		{
 			// get target's name
-			decl String:LogstrTargetName[MAX_NAME_LENGTH];
+			char LogstrTargetName[MAX_NAME_LENGTH];
 			GetClientName(iTarget, LogstrTargetName, sizeof(LogstrTargetName));
 			
 			// get target's SteamID
-			decl String:LstrTargetAuth[MAX_NAME_LENGTH];
+			char LstrTargetAuth[MAX_NAME_LENGTH];
 			GetClientAuthId(iTarget, AuthId_Steam2, LstrTargetAuth, sizeof(LstrTargetAuth));
 			
 			// Logging Vote
@@ -471,13 +520,13 @@ void CreateLogFile() // creates the log file in the system
 }
 
 // ====[ COMMANDS ]============================================================
-public Action:Command_Reload(iClient, iArgs)
+public Action Command_Reload(int iClient, int iArgs)
 {
 	Config_Load();
 	return Plugin_Handled;
 }
 
-public Action:Command_ChooseVote(iClient, iArgs)
+public Action Command_ChooseVote(int iClient, int iArgs)
 {
 	if(!IsValidClient(iClient))
 		return Plugin_Continue;
@@ -492,19 +541,19 @@ public Action:Command_ChooseVote(iClient, iArgs)
 	return Plugin_Handled;
 }
 
-public Action:OnClientSayCmd(iVoter, const String:strCmd[], iArgc)
+public Action OnClientSayCmd(int iVoter, const char[] strCmd, int iArgc)
 {
 	if(!IsValidClient(iVoter))
 		return Plugin_Continue;
 
-	decl String:strText[255];
+	char strText[255];
 	GetCmdArgString(strText, sizeof(strText));
 	StripQuotes(strText);
 
 	ReplaceString(strText, sizeof(strText), "!", "");
 	ReplaceString(strText, sizeof(strText), "/", "");
 
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 	{
 		if(StrEqual(g_strVoteChatTrigger[iVote], strText))
 		{
@@ -524,16 +573,16 @@ public Action:OnClientSayCmd(iVoter, const String:strCmd[], iArgc)
 }
 
 // ====[ MENUS ]===============================================================
-public Menu_ChooseVote(iVoter)
+public void Menu_ChooseVote(int iVoter)
 {
-	new Handle:hMenu = CreateMenu(MenuHandler_Vote);
+	Handle hMenu = CreateMenu(MenuHandler_Vote);
 	SetMenuTitle(hMenu, "Vote Menu:");
 
-	decl String:strIndex[4];
-	new iTime = GetTime();
-	for(new iVote = 0; iVote < g_iVoteCount; iVote++)
+	char strIndex[4];
+	int iTime = GetTime();
+	for(int iVote = 0; iVote < g_iVoteCount; iVote++)
 	{
-		new iFlags;
+		int iFlags;
 
 		// Admin access
 		if(g_strVoteOverride[iVote][0] && !CheckCommandAccess(iVoter, g_strVoteOverride[iVote], 0))
@@ -557,7 +606,7 @@ public Menu_ChooseVote(iVoter)
 
 		IntToString(iVote, strIndex, sizeof(strIndex));
 
-		decl String:strName[56];
+		char strName[56];
 		strcopy(strName, sizeof(strName), g_strVoteName[iVote]);
 
 		if(g_iVoteType[iVote] == VoteType_Simple)
@@ -580,7 +629,7 @@ public Menu_ChooseVote(iVoter)
 		AddMenuItem(hMenu, strIndex, strName, iFlags);
 	}
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && g_bKzTimer)
 		{
@@ -591,20 +640,20 @@ public Menu_ChooseVote(iVoter)
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
-public MenuHandler_Vote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int MenuHandler_Vote(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strBuffer[8];
+		char strBuffer[8];
 		GetMenuItem(hMenu, iParam2, strBuffer, sizeof(strBuffer));
 
-		new iVote = StringToInt(strBuffer);
+		int iVote = StringToInt(strBuffer);
 		g_iVoteCurrent[iVoter] = iVote;
 
 		switch(g_iVoteType[iVote])
@@ -615,9 +664,10 @@ public MenuHandler_Vote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			case VoteType_Simple: CastSimpleVote(iVote, iVoter);
 		}
 	}
+	return 0;
 }
 
-public Menu_PlayersVote(iVote, iVoter)
+public void Menu_PlayersVote(int iVote, int iVoter)
 {
 	if(IsVoteInProgress())
 	{
@@ -649,7 +699,7 @@ public Menu_PlayersVote(iVote, iVoter)
 		return;
 	}
 
-	new iTime = GetTime();
+	int iTime = GetTime();
 	if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 	{
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
@@ -662,16 +712,16 @@ public Menu_PlayersVote(iVote, iVoter)
 		return;
 	}
 
-	new Handle:hMenu = CreateMenu(MenuHandler_PlayersVote);
+	Handle hMenu = CreateMenu(MenuHandler_PlayersVote);
 	SetMenuTitle(hMenu, "%s:", g_strVoteName[iVote]);
 	SetMenuExitBackButton(hMenu, true);
 
-	new iCount;
-	decl String:strUserId[8];
-	decl String:strName[MAX_NAME_LENGTH + 12];
+	int iCount;
+	char strUserId[8];
+	char strName[MAX_NAME_LENGTH + 12];
 
-	new iVoterTeam = GetClientTeam(iVoter);
-	for(new iTarget = 1; iTarget <= MaxClients; iTarget++) if(IsClientInGame(iTarget))
+	int iVoterTeam = GetClientTeam(iVoter);
+	for(int iTarget = 1; iTarget <= MaxClients; iTarget++) if(IsClientInGame(iTarget))
 	{
 		if(!g_bVotePlayersBots[iVote] && IsFakeClient(iTarget))
 			continue;
@@ -679,11 +729,11 @@ public Menu_PlayersVote(iVote, iVoter)
 		if(g_bVotePlayersTeam[iVote] && GetClientTeam(iTarget) != iVoterTeam)
 			continue;
 
-		new iFlags;
+		int iFlags;
 		if(iTarget == iVoter)
 			iFlags = ITEMDRAW_DISABLED;
 
-		new AdminId:idAdmin = GetUserAdmin(iTarget);
+		AdminId idAdmin = GetUserAdmin(iTarget);
 		if(idAdmin != INVALID_ADMIN_ID)
 		{
 			if(GetAdminImmunityLevel(idAdmin) >= g_iVoteImmunity[iVote])
@@ -710,7 +760,7 @@ public Menu_PlayersVote(iVote, iVoter)
 		return;
 	}
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && g_bKzTimer)
 		{
@@ -721,41 +771,41 @@ public Menu_PlayersVote(iVote, iVoter)
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
-public MenuHandler_PlayersVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int MenuHandler_PlayersVote(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Cancel && iParam2 == MenuCancel_ExitBack)
 	{
 		Menu_ChooseVote(iVoter);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strBuffer[8];
+		char strBuffer[8];
 		GetMenuItem(hMenu, iParam2, strBuffer, sizeof(strBuffer));
 
-		new iVote = g_iVoteCurrent[iVoter];
+		int iVote = g_iVoteCurrent[iVoter];
 		if(iVote == -1)
-			return;
+			return 0;
 
 		if(IsVoteInProgress())
 		{
 			CPrintToChat(iVoter, "[SM] %t", "Vote in Progress");
-			return;
+			return 0;
 		}
 
-		new iTarget = GetClientOfUserId(StringToInt(strBuffer));
+		int iTarget = GetClientOfUserId(StringToInt(strBuffer));
 		if(!IsValidClient(iTarget))
 		{
 			CPrintToChat(iVoter, "%t", "Player no longer available");
 			Menu_ChooseVote(iVoter);
-			return;
+			return 0;
 		}
 
 		if(g_iVoteMaxCalls[iVote] > 0 && !CheckCommandAccess(iVoter, "customvotes_maxvotes", ADMFLAG_GENERIC))
@@ -769,13 +819,13 @@ public MenuHandler_PlayersVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2
 		if(g_bVoteCallVote[iVote])
 		{
 			Vote_Players(iVote, iVoter, iTarget);
-			return;
+			return 0;
 		}
 
 		g_bVoteForTarget[iVoter][iVote][iTarget] = true;
 		if(!g_bVoteMultiple[iVote])
 		{
-			for(new iClient = 0; iClient <= MaxClients; iClient++)
+			for(int iClient = 0; iClient <= MaxClients; iClient++)
 			{
 				if(iClient != iTarget)
 					g_bVoteForTarget[iVoter][iVote][iClient] = false;
@@ -784,7 +834,7 @@ public MenuHandler_PlayersVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2
 
 		if(g_strVoteCallNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[iVote]);
 
 			FormatVoteString(iVote, iTarget, strNotification, sizeof(strNotification));
@@ -799,21 +849,22 @@ public MenuHandler_PlayersVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2
 
 		if(!IsFakeClient(iTarget) && IsClientAuthorized(iTarget))
 		{
-			decl String:strAuth[MAX_NAME_LENGTH];
+			char strAuth[MAX_NAME_LENGTH];
 			GetClientAuthId(iVoter, AuthId_Steam2, strAuth, sizeof(strAuth));
 			PushArrayString(g_hArrayVotePlayerSteamID[iVoter][iVote], strAuth);
 		}
 
-		decl String:strIP[MAX_NAME_LENGTH];
+		char strIP[MAX_NAME_LENGTH];
 		if(GetClientIP(iTarget, strIP, sizeof(strIP)))
 			PushArrayString(g_hArrayVotePlayerIP[iVoter][iVote], strIP);
 
 		CheckVotesForTarget(iVote, iTarget);
 		Menu_ChooseVote(iVoter);
 	}
+	return 0;
 }
 
-public Vote_Players(iVote, iVoter, iTarget)
+public void Vote_Players(int iVote, int iVoter, int iTarget)
 {
 	if(IsVoteInProgress())
 	{
@@ -821,11 +872,11 @@ public Vote_Players(iVote, iVoter, iTarget)
 		return;
 	}
 
-	new iPlayers[MAXPLAYERS + 1];
-	new iTotal;
+	int iPlayers[MAXPLAYERS + 1];
+	int iTotal;
 	if (bAfkManagerEnable && g_bAfkManager)
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForTarget[i][iVote][iTarget] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget && !IsAFKClient(i))
@@ -842,7 +893,7 @@ public Vote_Players(iVote, iVoter, iTarget)
 	}
 	else
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForTarget[i][iVote][iTarget] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget)
@@ -864,7 +915,7 @@ public Vote_Players(iVote, iVoter, iTarget)
 	}
 	if(g_strVoteStartNotify[iVote][0]) // Vote Start Notify
 	{
-		decl String:strNotification[255];
+		char strNotification[255];
 		strcopy(strNotification, sizeof(strNotification), g_strVoteStartNotify[iVote]);
 
 		FormatVoteString(iVote, iTarget, strNotification, sizeof(strNotification));
@@ -888,23 +939,23 @@ public Vote_Players(iVote, iVoter, iTarget)
 		CPrintToChatAll("%s", strNotification);
 		
 		// get vote name
-		decl String:LogstrName[56];
+		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 		
 		// get voter's name
-		decl String:LogstrVoterName[MAX_NAME_LENGTH];
+		char LogstrVoterName[MAX_NAME_LENGTH];
 		GetClientName(iVoter, LogstrVoterName, sizeof(LogstrVoterName));
 		
 		// get voter's SteamID
-		decl String:LstrVoterAuth[MAX_NAME_LENGTH];
+		char LstrVoterAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
 		
 		// get target's name
-		decl String:LogstrTargetName[MAX_NAME_LENGTH];
+		char LogstrTargetName[MAX_NAME_LENGTH];
 		GetClientName(iTarget, LogstrTargetName, sizeof(LogstrTargetName));
 		
 		// get target's SteamID
-		decl String:LstrTargetAuth[MAX_NAME_LENGTH];
+		char LstrTargetAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iTarget, AuthId_Steam2, LstrTargetAuth, sizeof(LstrTargetAuth));
 		
 		// Logging Vote
@@ -917,10 +968,10 @@ public Vote_Players(iVote, iVoter, iTarget)
 			LstrTargetAuth);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_Players);
+	Handle hMenu = CreateMenu(VoteHandler_Players);
 
-	decl String:strTarget[MAX_NAME_LENGTH];
-	decl String:strBuffer[MAX_NAME_LENGTH + 12];
+	char strTarget[MAX_NAME_LENGTH];
+	char strBuffer[MAX_NAME_LENGTH + 12];
 
 	GetClientName(iTarget, strTarget, sizeof(strTarget));
 	Format(strBuffer, sizeof(strBuffer), "%s (%s)", g_strVoteName[iVote], strTarget);
@@ -958,7 +1009,7 @@ public Vote_Players(iVote, iVoter, iTarget)
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
 }
 
-public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int VoteHandler_Players(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
@@ -966,7 +1017,7 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 	}
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strInfo[16];
+		char strInfo[16];
 		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
 
 		if(StrEqual(strInfo, "Yes", false))
@@ -974,7 +1025,7 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForTarget[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = true;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteTarget, strNotification, sizeof(strNotification));
@@ -992,7 +1043,7 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForTarget[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = false;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteTarget, strNotification, sizeof(strNotification));
@@ -1010,7 +1061,7 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 	{
 		if(!CheckVotesForTarget(g_iCurrentVoteIndex, g_iCurrentVoteTarget) && g_strVoteFailNotify[g_iCurrentVoteIndex][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteFailNotify[g_iCurrentVoteIndex]);
 
 			FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteTarget, strNotification, sizeof(strNotification));
@@ -1027,9 +1078,10 @@ public VoteHandler_Players(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		strcopy(g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth), "");
 		strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), "");
 	}
+	return 0;
 }
 
-public Menu_MapVote(iVote, iVoter)
+public void Menu_MapVote(int iVote, int iVoter)
 {
 	if(IsVoteInProgress())
 	{
@@ -1061,7 +1113,7 @@ public Menu_MapVote(iVote, iVoter)
 		return;
 	}
 
-	new iTime = GetTime();
+	int iTime = GetTime();
 	if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 	{
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
@@ -1074,26 +1126,26 @@ public Menu_MapVote(iVote, iVoter)
 		return;
 	}
 
-	new Handle:hMenu = CreateMenu(MenuHandler_MapVote);
+	Handle hMenu = CreateMenu(MenuHandler_MapVote);
 	SetMenuTitle(hMenu, "%s:", g_strVoteName[iVote]);
 	SetMenuExitBackButton(hMenu, true);
 
-	decl String:strMap[MAX_NAME_LENGTH];
-	decl String:strCurrentMap[MAX_NAME_LENGTH];
-	decl String:strRecentMap[MAX_NAME_LENGTH];
-	decl String:strBuffer[MAX_NAME_LENGTH + 12];
+	char strMap[MAX_NAME_LENGTH];
+	char strCurrentMap[MAX_NAME_LENGTH];
+	char strRecentMap[MAX_NAME_LENGTH];
+	char strBuffer[MAX_NAME_LENGTH + 12];
 
-	new iLastMapCount = GetArraySize(g_hArrayRecentMaps);
+	int iLastMapCount = GetArraySize(g_hArrayRecentMaps);
 	if(iLastMapCount > g_iVoteMapRecent[iVote])
 		iLastMapCount = g_iVoteMapRecent[iVote];
 
-	new iMapCount = GetArraySize(g_hArrayVoteMapList[iVote]);
+	int iMapCount = GetArraySize(g_hArrayVoteMapList[iVote]);
 	if(iMapCount > MAX_VOTE_MAPS)
 		iMapCount = MAX_VOTE_MAPS;
 
-	for(new iMap = 0; iMap < iMapCount; iMap++)
+	for(int iMap = 0; iMap < iMapCount; iMap++)
 	{
-		new iFlags;
+		int iFlags;
 		if(g_bVoteMapCurrent[iVote])
 		{
 			GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
@@ -1105,7 +1157,7 @@ public Menu_MapVote(iVote, iVoter)
 
 		if(iLastMapCount > 0)
 		{
-			for(new iLastMap = 0; iLastMap < iLastMapCount; iLastMap++)
+			for(int iLastMap = 0; iLastMap < iLastMapCount; iLastMap++)
 			{
 				GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
 				GetArrayString(g_hArrayRecentMaps, iLastMap, strRecentMap, sizeof(strRecentMap));
@@ -1129,7 +1181,7 @@ public Menu_MapVote(iVote, iVoter)
 			AddMenuItem(hMenu, strMap, strBuffer, iFlags);
 	}
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && g_bKzTimer)
 		{
@@ -1140,33 +1192,33 @@ public Menu_MapVote(iVote, iVoter)
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
-public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int MenuHandler_MapVote(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Cancel && iParam2 == MenuCancel_ExitBack)
 	{
 		Menu_ChooseVote(iVoter);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strBuffer[MAX_NAME_LENGTH];
+		char strBuffer[MAX_NAME_LENGTH];
 		GetMenuItem(hMenu, iParam2, strBuffer, sizeof(strBuffer));
 
-		new iVote = g_iVoteCurrent[iVoter];
+		int iVote = g_iVoteCurrent[iVoter];
 		if(iVote == -1)
-			return;
+			return 0;
 
 		if(IsVoteInProgress())
 		{
 			CPrintToChat(iVoter, "[SM] %t", "Vote in Progress");
-			return;
+			return 0;
 		}
 
 		if(g_iVoteMaxCalls[iVote] > 0 && !CheckCommandAccess(iVoter, "customvotes_maxvotes", ADMFLAG_GENERIC))
@@ -1175,9 +1227,9 @@ public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			CPrintToChat(iVoter, "%t", "Votes Remaining", g_iVoteRemaining[iVoter][iVote]);
 		}
 
-		new iMap = -1;
-		decl String:strMapName[MAX_NAME_LENGTH];
-		for(new iMapList = 0; iMapList < GetArraySize(g_hArrayVoteMapList[iVote]); iMapList++)
+		int iMap = -1;
+		char strMapName[MAX_NAME_LENGTH];
+		for(int iMapList = 0; iMapList < GetArraySize(g_hArrayVoteMapList[iVote]); iMapList++)
 		{
 			GetArrayString(g_hArrayVoteMapList[iVote], iMapList, strMapName, sizeof(strMapName));
 			if(StrEqual(strMapName, strBuffer))
@@ -1190,26 +1242,26 @@ public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		if(iMap == -1)
 		{
 			Menu_ChooseVote(iVoter);
-			return;
+			return 0;
 		}
 
 		if(g_bVoteCallVote[iVote])
 		{
 			Vote_Map(iVote, iVoter, iMap);
-			return;
+			return 0;
 		}
 
 		if(g_bVoteForMap[iVoter][iVote][iMap])
 		{
 			CPrintToChat(iVoter, "%t", "Already Voted");
 			Menu_ChooseVote(iVoter);
-			return;
+			return 0;
 		}
 
 		g_bVoteForMap[iVoter][iVote][iMap] = true;
 		if(!g_bVoteMultiple[iVote])
 		{
-			for(new iSavedMap = 0; iSavedMap < GetArraySize(g_hArrayVoteMapList[iVote]); iSavedMap++)
+			for(int iSavedMap = 0; iSavedMap < GetArraySize(g_hArrayVoteMapList[iVote]); iSavedMap++)
 			{
 				if(iSavedMap != iMap)
 					g_bVoteForMap[iVoter][iVote][iSavedMap] = false;
@@ -1218,7 +1270,7 @@ public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 		if(g_strVoteCallNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[iVote]);
 
 			FormatVoteString(iVote, iMap, strNotification, sizeof(strNotification));
@@ -1236,9 +1288,10 @@ public MenuHandler_MapVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		CheckVotesForMap(iVote, iMap);
 		Menu_ChooseVote(iVoter);
 	}
+	return 0;
 }
 
-public Vote_Map(iVote, iVoter, iMap)
+public void Vote_Map(int iVote, int iVoter, int iMap)
 {
 	if(IsVoteInProgress())
 	{
@@ -1246,11 +1299,11 @@ public Vote_Map(iVote, iVoter, iMap)
 		return;
 	}
 
-	new iPlayers[MAXPLAYERS + 1];
-	new iTotal;
+	int iPlayers[MAXPLAYERS + 1];
+	int iTotal;
 	if (bAfkManagerEnable && g_bAfkManager)
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForMap[i][iVote][iMap] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
@@ -1261,7 +1314,7 @@ public Vote_Map(iVote, iVoter, iMap)
 	}
 	else
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForMap[i][iVote][iMap] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i))
@@ -1278,7 +1331,7 @@ public Vote_Map(iVote, iVoter, iMap)
 
 	if(g_strVoteStartNotify[iVote][0])
 	{
-		decl String:strNotification[255];
+		char strNotification[255];
 		strcopy(strNotification, sizeof(strNotification), g_strVoteStartNotify[iVote]);
 
 		FormatVoteString(iVote, iMap, strNotification, sizeof(strNotification));
@@ -1302,23 +1355,23 @@ public Vote_Map(iVote, iVoter, iMap)
 		CPrintToChatAll("%s", strNotification);
 		
 		// get vote name
-		decl String:LogstrName[56];
+		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 		
 		// get voter's name
-		decl String:LogstrVoterName[MAX_NAME_LENGTH];
+		char LogstrVoterName[MAX_NAME_LENGTH];
 		GetClientName(iVoter, LogstrVoterName, sizeof(LogstrVoterName));
 		
 		// get voter's SteamID
-		decl String:LstrVoterAuth[MAX_NAME_LENGTH];
+		char LstrVoterAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
 		
 		// get current map name
-		decl String:LogstrCurrentMap[MAX_NAME_LENGTH];
+		char LogstrCurrentMap[MAX_NAME_LENGTH];
 		GetCurrentMap(LogstrCurrentMap, sizeof(LogstrCurrentMap));
 		
 		// get target map name
-		decl String:LogstrMap[MAX_NAME_LENGTH];
+		char LogstrMap[MAX_NAME_LENGTH];
 		GetArrayString(g_hArrayVoteMapList[iVote], iMap, LogstrMap, sizeof(LogstrMap));
 		
 		// Logging Vote
@@ -1331,10 +1384,10 @@ public Vote_Map(iVote, iVoter, iMap)
 			LogstrMap);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_Map);
+	Handle hMenu = CreateMenu(VoteHandler_Map);
 
-	decl String:strMap[MAX_NAME_LENGTH];
-	decl String:strBuffer[MAX_NAME_LENGTH + 12];
+	char strMap[MAX_NAME_LENGTH];
+	char strBuffer[MAX_NAME_LENGTH + 12];
 
 	GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
 	Format(strBuffer, sizeof(strBuffer), "%s (%s)", g_strVoteName[iVote], strMap);
@@ -1361,17 +1414,17 @@ public Vote_Map(iVote, iVoter, iMap)
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
 }
 
-public VoteHandler_Map(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int VoteHandler_Map(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strInfo[16];
+		char strInfo[16];
 		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
 
 		if(StrEqual(strInfo, "Yes"))
@@ -1379,7 +1432,7 @@ public VoteHandler_Map(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForMap[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteMap] = true;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteMap, strNotification, sizeof(strNotification));
@@ -1397,7 +1450,7 @@ public VoteHandler_Map(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForMap[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteMap, strNotification, sizeof(strNotification));
@@ -1415,7 +1468,7 @@ public VoteHandler_Map(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 	{
 		if(!CheckVotesForMap(g_iCurrentVoteIndex, g_iCurrentVoteMap) && g_strVoteFailNotify[g_iCurrentVoteIndex][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteFailNotify[g_iCurrentVoteIndex]);
 
 			FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteMap, strNotification, sizeof(strNotification));
@@ -1426,9 +1479,10 @@ public VoteHandler_Map(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		g_iCurrentVoteMap = -1;
 		g_iCurrentVoteIndex = -1;
 	}
+	return 0;
 }
 
-public Menu_ListVote(iVote, iVoter)
+public void Menu_ListVote(int iVote, int iVoter)
 {
 	if(IsVoteInProgress())
 	{
@@ -1460,7 +1514,7 @@ public Menu_ListVote(iVote, iVoter)
 		return;
 	}
 
-	new iTime = GetTime();
+	int iTime = GetTime();
 	if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 	{
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
@@ -1473,14 +1527,14 @@ public Menu_ListVote(iVote, iVoter)
 		return;
 	}
 
-	new Handle:hMenu = CreateMenu(MenuHandler_ListVote);
+	Handle hMenu = CreateMenu(MenuHandler_ListVote);
 	SetMenuTitle(hMenu, "%s:", g_strVoteName[iVote]);
 	SetMenuExitBackButton(hMenu, true);
 
-	decl String:strIndex[MAX_NAME_LENGTH];
-	decl String:strBuffer[MAX_NAME_LENGTH + 12];
-	decl String:strOptionName[MAX_NAME_LENGTH];
-	for(new iOption = 0; iOption < GetArraySize(g_hArrayVoteOptionName[iVote]); iOption++)
+	char strIndex[MAX_NAME_LENGTH];
+	char strBuffer[MAX_NAME_LENGTH + 12];
+	char strOptionName[MAX_NAME_LENGTH];
+	for(int iOption = 0; iOption < GetArraySize(g_hArrayVoteOptionName[iVote]); iOption++)
 	{
 		GetArrayString(g_hArrayVoteOptionName[iVote], iOption, strOptionName, sizeof(strOptionName));
 		if(g_bVoteCallVote[iVote])
@@ -1496,7 +1550,7 @@ public Menu_ListVote(iVote, iVoter)
 			AddMenuItem(hMenu, strIndex, strBuffer);
 	}
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && g_bKzTimer)
 		{
@@ -1507,33 +1561,33 @@ public Menu_ListVote(iVote, iVoter)
 	DisplayMenu(hMenu, iVoter, 30);
 }
 
-public MenuHandler_ListVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int MenuHandler_ListVote(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Cancel && iParam2 == MenuCancel_ExitBack)
 	{
 		Menu_ChooseVote(iVoter);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strBuffer[MAX_NAME_LENGTH];
+		char strBuffer[MAX_NAME_LENGTH];
 		GetMenuItem(hMenu, iParam2, strBuffer, sizeof(strBuffer));
 
-		new iVote = g_iVoteCurrent[iVoter];
+		int iVote = g_iVoteCurrent[iVoter];
 		if(iVote == -1)
-			return;
+			return 0;
 
 		if(IsVoteInProgress())
 		{
 			CPrintToChat(iVoter, "[SM] %t", "Vote in Progress");
-			return;
+			return 0;
 		}
 
 		if(g_iVoteMaxCalls[iVote] > 0 && !CheckCommandAccess(iVoter, "customvotes_maxvotes", ADMFLAG_GENERIC))
@@ -1542,24 +1596,24 @@ public MenuHandler_ListVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			CPrintToChat(iVoter, "%t", "Votes Remaining", g_iVoteRemaining[iVoter][iVote]);
 		}
 
-		new iOption = StringToInt(strBuffer);
+		int iOption = StringToInt(strBuffer);
 		if(g_bVoteCallVote[iVote])
 		{
 			Vote_List(iVote, iVoter, iOption);
-			return;
+			return 0;
 		}
 
 		if(g_bVoteForOption[iVoter][iVote][iOption])
 		{
 			CPrintToChat(iVoter, "%t", "Already Voted");
 			Menu_ChooseVote(iVoter);
-			return;
+			return 0;
 		}
 
 		g_bVoteForOption[iVoter][iVote][iOption] = true;
 		if(!g_bVoteMultiple[iVote])
 		{
-			for(new iOptionList = 0; iOptionList < GetArraySize(g_hArrayVoteOptionName[iVote]); iOptionList++)
+			for(int iOptionList = 0; iOptionList < GetArraySize(g_hArrayVoteOptionName[iVote]); iOptionList++)
 			{
 				if(iOptionList != iOption)
 					g_bVoteForOption[iVoter][iVote][iOptionList] = false;
@@ -1568,7 +1622,7 @@ public MenuHandler_ListVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 
 		if(g_strVoteCallNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[iVote]);
 
 			FormatVoteString(iVote, iOption, strNotification, sizeof(strNotification));
@@ -1586,9 +1640,10 @@ public MenuHandler_ListVote(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		CheckVotesForOption(iVote, iOption);
 		Menu_ChooseVote(iVoter);
 	}
+	return 0;
 }
 
-public Vote_List(iVote, iVoter, iOption)
+public void Vote_List(int iVote, int iVoter, int iOption)
 {
 	if(IsVoteInProgress())
 	{
@@ -1596,12 +1651,12 @@ public Vote_List(iVote, iVoter, iOption)
 		return;
 	}
 
-	new iPlayers[MAXPLAYERS + 1];
-	new iTotal;
+	int iPlayers[MAXPLAYERS + 1];
+	int iTotal;
 
 	if (bAfkManagerEnable && g_bAfkManager)
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForOption[i][iVote][iOption] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
@@ -1612,7 +1667,7 @@ public Vote_List(iVote, iVoter, iOption)
 	}
 	else
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForOption[i][iVote][iOption] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i))
@@ -1629,7 +1684,7 @@ public Vote_List(iVote, iVoter, iOption)
 
 	if(g_strVoteStartNotify[iVote][0])
 	{
-		decl String:strNotification[255];
+		char strNotification[255];
 		strcopy(strNotification, sizeof(strNotification), g_strVoteStartNotify[iVote]);
 
 		FormatVoteString(iVote, iOption, strNotification, sizeof(strNotification));
@@ -1653,19 +1708,19 @@ public Vote_List(iVote, iVoter, iOption)
 		CPrintToChatAll("%s", strNotification);
 
 		// get vote name
-		decl String:LogstrName[56];
+		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 		
 		// get voter's name
-		decl String:LogstrVoterName[MAX_NAME_LENGTH];
+		char LogstrVoterName[MAX_NAME_LENGTH];
 		GetClientName(iVoter, LogstrVoterName, sizeof(LogstrVoterName));
 		
 		// get voter's SteamID
-		decl String:LstrVoterAuth[MAX_NAME_LENGTH];
+		char LstrVoterAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
 		
 		// get vote option
-		decl String:LstrOptionResult[MAX_NAME_LENGTH];
+		char LstrOptionResult[MAX_NAME_LENGTH];
 		GetArrayString(g_hArrayVoteOptionResult[iVote], iOption, LstrOptionResult, sizeof(LstrOptionResult));
 		
 		// Logging Vote
@@ -1677,10 +1732,10 @@ public Vote_List(iVote, iVoter, iOption)
 			LstrOptionResult);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_List);
+	Handle hMenu = CreateMenu(VoteHandler_List);
 
-	decl String:strOption[MAX_NAME_LENGTH];
-	decl String:strBuffer[MAX_NAME_LENGTH + 12];
+	char strOption[MAX_NAME_LENGTH];
+	char strBuffer[MAX_NAME_LENGTH + 12];
 
 	GetArrayString(g_hArrayVoteOptionName[iVote], iOption, strOption, sizeof(strOption));
 	Format(strBuffer, sizeof(strBuffer), "%s (%s)", g_strVoteName[iVote], strOption);
@@ -1705,19 +1760,20 @@ public Vote_List(iVote, iVoter, iOption)
 	g_iCurrentVoteIndex = iVote;
 	g_iCurrentVoteOption = iOption;
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
+	return;
 }
 
-public VoteHandler_List(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int VoteHandler_List(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strInfo[16];
+		char strInfo[16];
 		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
 
 		if(StrEqual(strInfo, "Yes"))
@@ -1725,7 +1781,7 @@ public VoteHandler_List(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForOption[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteOption] = true;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteOption, strNotification, sizeof(strNotification));
@@ -1743,7 +1799,7 @@ public VoteHandler_List(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForOption[iVoter][g_iCurrentVoteIndex][g_iCurrentVoteOption] = false;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteOption, strNotification, sizeof(strNotification));
@@ -1761,7 +1817,7 @@ public VoteHandler_List(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 	{
 		if(!CheckVotesForOption(g_iCurrentVoteIndex, g_iCurrentVoteOption) && g_strVoteFailNotify[g_iCurrentVoteIndex][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteFailNotify[g_iCurrentVoteIndex]);
 
 			FormatVoteString(g_iCurrentVoteIndex, g_iCurrentVoteOption, strNotification, sizeof(strNotification));
@@ -1772,9 +1828,10 @@ public VoteHandler_List(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		g_iCurrentVoteOption = -1;
 		g_iCurrentVoteIndex = -1;
 	}
+	return 0;
 }
 
-public CastSimpleVote(iVote, iVoter)
+public void CastSimpleVote(int iVote, int iVoter)
 {
 	if(IsVoteInProgress())
 	{
@@ -1806,7 +1863,7 @@ public CastSimpleVote(iVote, iVoter)
 		return;
 	}
 
-	new iTime = GetTime();
+	int iTime = GetTime();
 	if(iTime - g_iVoteLast[iVoter][iVote] < g_iVoteCooldown[iVote] && !CheckCommandAccess(iVoter, "customvotes_cooldown", ADMFLAG_GENERIC))
 	{
 		CPrintToChat(iVoter, "%t", "Vote Cooldown", g_iVoteCooldown[iVote] - (iTime - g_iVoteLast[iVoter][iVote]));
@@ -1836,7 +1893,7 @@ public CastSimpleVote(iVote, iVoter)
 	g_bVoteForSimple[iVoter][iVote] = true;
 	if(g_strVoteCallNotify[iVote][0])
 	{
-		decl String:strNotification[255];
+		char strNotification[255];
 		strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[iVote]);
 
 		FormatVoteString(iVote, _, strNotification, sizeof(strNotification));
@@ -1861,9 +1918,10 @@ public CastSimpleVote(iVote, iVoter)
 
 	CheckVotesForSimple(iVote);
 	Menu_ChooseVote(iVoter);
+	return;
 }
 
-public Vote_Simple(iVote, iVoter)
+public void Vote_Simple(int iVote, int iVoter)
 {
 	if(IsVoteInProgress())
 	{
@@ -1871,12 +1929,12 @@ public Vote_Simple(iVote, iVoter)
 		return;
 	}
 
-	new iPlayers[MAXPLAYERS + 1];
-	new iTotal;
+	int iPlayers[MAXPLAYERS + 1];
+	int iTotal;
 	
 	if (bAfkManagerEnable && g_bAfkManager)
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForSimple[i][iVote] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
@@ -1887,7 +1945,7 @@ public Vote_Simple(iVote, iVoter)
 	}
 	else
 	{
-		for(new i = 1; i <= MaxClients; i++)
+		for(int i = 1; i <= MaxClients; i++)
 		{
 			g_bVoteForSimple[i][iVote] = false;	
 			if(IsClientInGame(i) && !IsFakeClient(i))
@@ -1904,7 +1962,7 @@ public Vote_Simple(iVote, iVoter)
 
 	if(g_strVoteStartNotify[iVote][0])
 	{
-		decl String:strNotification[255];
+		char strNotification[255];
 		strcopy(strNotification, sizeof(strNotification), g_strVoteStartNotify[iVote]);
 
 		FormatVoteString(iVote, _, strNotification, sizeof(strNotification));
@@ -1927,15 +1985,15 @@ public Vote_Simple(iVote, iVoter)
 		CPrintToChatAll("%s", strNotification);
 		
 		// get vote name
-		decl String:LogstrName[56];
+		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 		
 		// get voter's name
-		decl String:LogstrVoterName[MAX_NAME_LENGTH];
+		char LogstrVoterName[MAX_NAME_LENGTH];
 		GetClientName(iVoter, LogstrVoterName, sizeof(LogstrVoterName));
 		
 		// get voter's SteamID
-		decl String:LstrVoterAuth[MAX_NAME_LENGTH];
+		char LstrVoterAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
 		
 		// Logging Vote
@@ -1946,9 +2004,9 @@ public Vote_Simple(iVote, iVoter)
 			LstrVoterAuth);
 	}
 
-	new Handle:hMenu = CreateMenu(VoteHandler_Simple);
+	Handle hMenu = CreateMenu(VoteHandler_Simple);
 
-	decl String:strName[56];
+	char strName[56];
 	strcopy(strName, sizeof(strName), g_strVoteName[iVote]);
 
 	if(g_iVoteType[iVote] == VoteType_Simple)
@@ -1984,19 +2042,20 @@ public Vote_Simple(iVote, iVoter)
 
 	g_iCurrentVoteIndex = iVote;
 	VoteMenu(hMenu, iPlayers, iTotal, 30);
+	return;
 }
 
-public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
+public int VoteHandler_Simple(Handle hMenu, MenuAction iAction, int iVoter, int iParam2)
 {
 	if(iAction == MenuAction_End)
 	{
 		CloseHandle(hMenu);
-		return;
+		return 0;
 	}
 
 	if(iAction == MenuAction_Select)
 	{
-		decl String:strInfo[16];
+		char strInfo[16];
 		GetMenuItem(hMenu, iParam2, strInfo, sizeof(strInfo));
 
 		if(StrEqual(strInfo, "Yes"))
@@ -2004,7 +2063,7 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForSimple[iVoter][g_iCurrentVoteIndex] = true;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
@@ -2042,7 +2101,7 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 			g_bVoteForSimple[iVoter][g_iCurrentVoteIndex] = false;
 			if(g_strVoteCallNotify[g_iCurrentVoteIndex][0])
 			{
-				decl String:strNotification[255];
+				char strNotification[255];
 				strcopy(strNotification, sizeof(strNotification), g_strVoteCallNotify[g_iCurrentVoteIndex]);
 
 				FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
@@ -2079,7 +2138,7 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 	{
 		if(!CheckVotesForSimple(g_iCurrentVoteIndex) && g_strVoteFailNotify[g_iCurrentVoteIndex][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVoteFailNotify[g_iCurrentVoteIndex]);
 
 			FormatVoteString(g_iCurrentVoteIndex, _, strNotification, sizeof(strNotification));
@@ -2088,14 +2147,15 @@ public VoteHandler_Simple(Handle:hMenu, MenuAction:iAction, iVoter, iParam2)
 		}
 		g_iCurrentVoteIndex = -1;
 	}
+	return 0;
 }
 
 // Reset vote at wave failure.
-public Action:TF_WaveFailed(Handle:event, const String:name[], bool:dontBroadcast)
+public Action TF_WaveFailed(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bResetOnWaveFailed)
 	{
-		for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+		for(int iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 		{
 			g_iVotePasses[iVote] = 0;
 		}
@@ -2108,7 +2168,7 @@ public Action:TF_WaveFailed(Handle:event, const String:name[], bool:dontBroadcas
 	}
 }
 // Cancel votes on Game Over (TF2)
-public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
+public Action TF_TeamPlayWinPanel(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -2127,7 +2187,7 @@ public Action:TF_TeamPlayWinPanel(Handle:event, const String:name[], bool:dontBr
 			"[Custom Votes] DEBUG: Event TF_TeamPlayWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
-public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
+public Action TF_ArenaWinPanel(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -2146,7 +2206,7 @@ public Action:TF_ArenaWinPanel(Handle:event, const String:name[], bool:dontBroad
 			"[Custom Votes] DEBUG: Event TF_ArenaWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
-public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadcast)
+public Action TF_MVMWinPanel(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -2166,7 +2226,7 @@ public Action:TF_MVMWinPanel(Handle:event, const String:name[], bool:dontBroadca
 	}
 }
 // Cancel votes on round end (CSGO)
-public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
+public Action CSGO_MapEnd(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -2186,7 +2246,7 @@ public Action:CSGO_MapEnd(Handle:event, const String:name[], bool:dontBroadcast)
 	}
 }
 
-public Action:OnLogAction(Handle:source, Identity:ident, client, target, const String:message[])
+public Action OnLogAction(Handle source, Identity ident, int client, int target, const char[] message)
 {
 	if((StrContains(message, "changed map to") != -1) && bCancelVoteGameEnd && IsVoteInProgress())
 	{
@@ -2198,7 +2258,7 @@ public Action:OnLogAction(Handle:source, Identity:ident, client, target, const S
 }
 
 // ====[ FUNCTIONS ]===========================================================
-public Config_Load()
+public void Config_Load()
 {
 	if(!FileExists(g_strConfigFile))
 	{
@@ -2206,7 +2266,7 @@ public Config_Load()
 		return;
 	}
 
-	new Handle:hKeyValues = CreateKeyValues("Custom Votes");
+	Handle hKeyValues = CreateKeyValues("Custom Votes");
 	if(!FileToKeyValues(hKeyValues, g_strConfigFile) || !KvGotoFirstSubKey(hKeyValues))
 	{
 		SetFailState("Improper structure for configuration file %s!", g_strConfigFile);
@@ -2224,10 +2284,10 @@ public Config_Load()
 	strcopy(g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth), "");
 	strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), "");
 
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 		g_iVoteCurrent[iVoter] = -1;
 
-	for(new iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+	for(int iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 	{
 		g_iVoteDelay[iVote] = 0;
 		g_iVoteMinimum[iVote] = 0;
@@ -2252,21 +2312,21 @@ public Config_Load()
 		strcopy(g_strVotePassNotify[iVote], sizeof(g_strVotePassNotify[]), "");
 		strcopy(g_strVoteFailNotify[iVote], sizeof(g_strVoteFailNotify[]), "");
 
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 		{
 			g_iVoteRemaining[iVoter][iVote] = 0;
 			g_iVoteLast[iVoter][iVote] = 0;
 			g_iVoteAllLast[iVote] = 0;
-			for(new iTarget = 1; iTarget <= MaxClients; iTarget++)
+			for(int iTarget = 1; iTarget <= MaxClients; iTarget++)
 			{
 				g_bVoteForTarget[iTarget][iVote][iVoter] = false;
 				g_bVoteForTarget[iVoter][iVote][iTarget] = false;
 			}
 
-			for(new iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
+			for(int iMap = 0; iMap < MAX_VOTE_MAPS; iMap++)
 				g_bVoteForMap[iVoter][iVote][iMap] = false;
 
-			for(new iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
+			for(int iOption = 0; iOption < MAX_VOTE_OPTIONS; iOption++)
 				g_bVoteForOption[iVoter][iVote][iOption] = false;
 
 			g_bVoteForSimple[iVoter][iVote] = false;
@@ -2303,14 +2363,14 @@ public Config_Load()
 		}
 	}
 
-	new iVote;
+	int iVote;
 	do
 	{
 		// Name of vote
 		KvGetSectionName(hKeyValues, g_strVoteName[iVote], sizeof(g_strVoteName[]));
 
 		// Type of vote (Valid types: players, map, list)
-		decl String:strType[24];
+		char strType[24];
 		KvGetString(hKeyValues, "type", strType, sizeof(strType));
 
 		if(StrEqual(strType, "players"))
@@ -2328,7 +2388,7 @@ public Config_Load()
 		}
 
 		// Determine if a vote is called to determine the result of the selection, or if each selection is chosen  manually by the players
-		g_bVoteCallVote[iVote] = bool:KvGetNum(hKeyValues, "vote");
+		g_bVoteCallVote[iVote] = view_as<bool>(KvGetNum(hKeyValues, "vote"));
 
 		// Delay in seconds before players vote after the map has changed
 		g_iVoteDelay[iVote] = KvGetNum(hKeyValues, "delay");
@@ -2347,14 +2407,14 @@ public Config_Load()
 
 		// Maximum times a player can vote
 		g_iVoteMaxCalls[iVote] = KvGetNum(hKeyValues, "maxcalls");
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 			g_iVoteRemaining[iVoter][iVote] = g_iVoteMaxCalls[iVote];
 
 		// Maximum times a player can cast a selection
 		g_iVoteMaxPasses[iVote] = KvGetNum(hKeyValues, "maxpasses");
 
 		// Allow/disallow players from casting a selection on more than one option
-		g_bVoteMultiple[iVote] = bool:KvGetNum(hKeyValues, "multiple");
+		g_bVoteMultiple[iVote] = view_as<bool>(KvGetNum(hKeyValues, "multiple"));
 
 		// Ratio of players required to cast a selection for the vote to pass
 		g_flVoteRatio[iVote] = KvGetFloat(hKeyValues, "ratio");
@@ -2388,12 +2448,12 @@ public Config_Load()
 			case VoteType_Players:
 			{
 				// Allows/disallows casting selections on bots
-				g_bVotePlayersBots[iVote] = bool:KvGetNum(hKeyValues, "bots");
+				g_bVotePlayersBots[iVote] = view_as<bool>(KvGetNum(hKeyValues, "bots"));
 
 				// Restricts players to only casting selections on team members
-				g_bVotePlayersTeam[iVote] = bool:KvGetNum(hKeyValues, "team");
+				g_bVotePlayersTeam[iVote] = view_as<bool>(KvGetNum(hKeyValues, "team"));
 
-				for(new iTarget = 0; iTarget <= MaxClients; iTarget++)
+				for(int iTarget = 0; iTarget <= MaxClients; iTarget++)
 				{
 					g_hArrayVotePlayerSteamID[iTarget][iVote] = CreateArray(MAX_NAME_LENGTH);
 					g_hArrayVotePlayerIP[iTarget][iVote] = CreateArray(MAX_NAME_LENGTH);
@@ -2405,10 +2465,10 @@ public Config_Load()
 				g_iVoteMapRecent[iVote] = KvGetNum(hKeyValues, "recentmaps");
 
 				// Allows/disallows casting selections on the current map
-				g_bVoteMapCurrent[iVote] = bool:KvGetNum(hKeyValues, "currentmap");
+				g_bVoteMapCurrent[iVote] = view_as<bool>(KvGetNum(hKeyValues, "currentmap"));
 
 				// List of maps to populate the selection list
-				decl String:strMapList[24];
+				char strMapList[24];
 				KvGetString(hKeyValues, "maplist", strMapList, sizeof(strMapList), "default");
 
 				g_hArrayVoteMapList[iVote] = CreateArray(MAX_NAME_LENGTH);
@@ -2429,12 +2489,12 @@ public Config_Load()
 					do
 					{
 						// Vote option name
-						decl String:strOptionName[MAX_NAME_LENGTH];
+						char strOptionName[MAX_NAME_LENGTH];
 						KvGetSectionName(hKeyValues, strOptionName, sizeof(strOptionName));
 						PushArrayString(g_hArrayVoteOptionName[iVote], strOptionName);
 
 						// Vote option result
-						decl String:strOptionResult[MAX_NAME_LENGTH];
+						char strOptionResult[MAX_NAME_LENGTH];
 						KvGetString(hKeyValues, NULL_STRING, strOptionResult, sizeof(strOptionResult));
 						PushArrayString(g_hArrayVoteOptionResult[iVote], strOptionResult);
 					}
@@ -2454,11 +2514,11 @@ public Config_Load()
 	LogMessage("Configuration file %s loaded.", g_strConfigFile);
 }
 
-public bool:CheckVotesForTarget(iVote, iTarget)
+public bool CheckVotesForTarget(int iVote, int iTarget)
 {
 
-	new iVotes = GetVotesForTarget(iVote, iTarget);
-	new iRequired = GetRequiredVotes(iVote);
+	int iVotes = GetVotesForTarget(iVote, iTarget);
+	int iRequired = GetRequiredVotes(iVote);
 	
 /* 	if(g_bMapEnded) // if the map ended, always return false
 	{
@@ -2471,34 +2531,34 @@ public bool:CheckVotesForTarget(iVote, iTarget)
 
 		if(g_strVoteCommand[iVote][0])
 		{
-			decl String:strCommand[255];
+			char strCommand[255];
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
 			FormatTargetString(iVote, iTarget, strCommand, sizeof(strCommand));
 			ServerCommand(strCommand);
 		}
 
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 			g_bVoteForTarget[iVoter][iVote][iTarget] = false;
 
 		if(g_strVotePassNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVotePassNotify[iVote]);
 
 			FormatTargetString(iVote, iTarget, strNotification, sizeof(strNotification));
 			CPrintToChatAll("%s", strNotification);
 			
 			// get vote name
-			decl String:LogstrName[56];
+			char LogstrName[56];
 			strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 			
 			// get target's name
-			decl String:LogstrTargetName[MAX_NAME_LENGTH];
+			char LogstrTargetName[MAX_NAME_LENGTH];
 			GetClientName(iTarget, LogstrTargetName, sizeof(LogstrTargetName));
 			
 			// get target's SteamID
-			decl String:LstrTargetAuth[MAX_NAME_LENGTH];
+			char LstrTargetAuth[MAX_NAME_LENGTH];
 			GetClientAuthId(iTarget, AuthId_Steam2, LstrTargetAuth, sizeof(LstrTargetAuth));
 			
 			// Logging Vote
@@ -2513,10 +2573,10 @@ public bool:CheckVotesForTarget(iVote, iTarget)
 	return false;
 }
 
-public bool:CheckVotesForMap(iVote, iMap)
+public bool CheckVotesForMap(int iVote, int iMap)
 {
-	new iVotes = GetVotesForMap(iVote, iMap);
-	new iRequired = GetRequiredVotes(iVote);
+	int iVotes = GetVotesForMap(iVote, iMap);
+	int iRequired = GetRequiredVotes(iVote);
 	
 /* 	if(g_bMapEnded) // if the map ended, always return false
 	{
@@ -2529,34 +2589,34 @@ public bool:CheckVotesForMap(iVote, iMap)
 
 		if(g_strVoteCommand[iVote][0])
 		{
-			decl String:strCommand[255];
+			char strCommand[255];
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
 			FormatMapString(iVote, iMap, strCommand, sizeof(strCommand));
 			ServerCommand(strCommand);
 		}
 
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 			g_bVoteForMap[iVoter][iVote][iMap] = false;
 
 		if(g_strVotePassNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVotePassNotify[iVote]);
 
 			FormatMapString(iVote, iMap, strNotification, sizeof(strNotification));
 			CPrintToChatAll("%s", strNotification);
 			
 			// get vote name
-			decl String:LogstrName[56];
+			char LogstrName[56];
 			strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 			
 			// get current map name
-			decl String:LogstrCurrentMap[MAX_NAME_LENGTH];
+			char LogstrCurrentMap[MAX_NAME_LENGTH];
 			GetCurrentMap(LogstrCurrentMap, sizeof(LogstrCurrentMap));
 			
 			// get target map name
-			decl String:LogstrMap[MAX_NAME_LENGTH];
+			char LogstrMap[MAX_NAME_LENGTH];
 			GetArrayString(g_hArrayVoteMapList[iVote], iMap, LogstrMap, sizeof(LogstrMap));
 			
 			// Logging Vote
@@ -2571,10 +2631,10 @@ public bool:CheckVotesForMap(iVote, iMap)
 	return false;
 }
 
-public bool:CheckVotesForOption(iVote, iOption)
+public bool CheckVotesForOption(int iVote, int iOption)
 {
-	new iVotes = GetVotesForOption(iVote, iOption);
-	new iRequired = GetRequiredVotes(iVote);
+	int iVotes = GetVotesForOption(iVote, iOption);
+	int iRequired = GetRequiredVotes(iVote);
 	
 /* 	if(g_bMapEnded) // if the map ended, always return false
 	{
@@ -2587,30 +2647,30 @@ public bool:CheckVotesForOption(iVote, iOption)
 
 		if(g_strVoteCommand[iVote][0])
 		{
-			decl String:strCommand[255];
+			char strCommand[255];
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
 			FormatOptionString(iVote, iOption, strCommand, sizeof(strCommand));
 			ServerCommand(strCommand);
 		}
 
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 			g_bVoteForOption[iVoter][iVote][iOption] = false;
 
 		if(g_strVotePassNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVotePassNotify[iVote]);
 
 			FormatOptionString(iVote, iOption, strNotification, sizeof(strNotification));
 			CPrintToChatAll("%s", strNotification);
 			
 			// get vote name
-			decl String:LogstrName[56];
+			char LogstrName[56];
 			strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 			
 			// get vote option
-			decl String:LstrOptionResult[MAX_NAME_LENGTH];
+			char LstrOptionResult[MAX_NAME_LENGTH];
 			GetArrayString(g_hArrayVoteOptionResult[iVote], iOption, LstrOptionResult, sizeof(LstrOptionResult));
 			
 			// Logging Vote
@@ -2624,10 +2684,10 @@ public bool:CheckVotesForOption(iVote, iOption)
 	return false;
 }
 
-public bool:CheckVotesForSimple(iVote)
+public bool CheckVotesForSimple(int iVote)
 {
-	new iVotes = GetVotesForSimple(iVote);
-	new iRequired = GetRequiredVotes(iVote);
+	int iVotes = GetVotesForSimple(iVote);
+	int iRequired = GetRequiredVotes(iVote);
 	
 /* 	if(g_bMapEnded) // if the map ended, always return false
 	{
@@ -2640,7 +2700,7 @@ public bool:CheckVotesForSimple(iVote)
 
 		if(g_strVoteCommand[iVote][0])
 		{
-			decl String:strCommand[255];
+			char strCommand[255];
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
 			if(g_strVoteConVar[iVote][0] && GetConVarBool(FindConVar(g_strVoteConVar[iVote])))
@@ -2652,12 +2712,12 @@ public bool:CheckVotesForSimple(iVote)
 			ServerCommand(strCommand);
 		}
 
-		for(new iVoter = 1; iVoter <= MaxClients; iVoter++)
+		for(int iVoter = 1; iVoter <= MaxClients; iVoter++)
 			g_bVoteForSimple[iVoter][iVote] = false;
 
 		if(g_strVotePassNotify[iVote][0])
 		{
-			decl String:strNotification[255];
+			char strNotification[255];
 			strcopy(strNotification, sizeof(strNotification), g_strVotePassNotify[iVote]);
 
 			if(g_strVoteConVar[iVote][0] && GetConVarBool(FindConVar(g_strVoteConVar[iVote])))
@@ -2675,7 +2735,7 @@ public bool:CheckVotesForSimple(iVote)
 			CPrintToChatAll("%s", strNotification);
 
 			// get vote name
-			decl String:LogstrName[56];
+			char LogstrName[56];
 			strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
 			
 			// Logging Vote
@@ -2688,10 +2748,10 @@ public bool:CheckVotesForSimple(iVote)
 	return false;
 }
 
-public GetVotesForTarget(iVote, iTarget)
+public int GetVotesForTarget(int iVote, int iTarget)
 {
-	new iCount;
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	int iCount;
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
 		if(g_bVoteForTarget[iVoter][iVote][iTarget])
 			iCount++;
@@ -2699,10 +2759,10 @@ public GetVotesForTarget(iVote, iTarget)
 	return iCount;
 }
 
-public GetVotesForMap(iVote, iMap)
+public int GetVotesForMap(int iVote, int iMap)
 {
-	new iCount;
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	int iCount;
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
 		if(g_bVoteForMap[iVoter][iVote][iMap])
 			iCount++;
@@ -2710,10 +2770,10 @@ public GetVotesForMap(iVote, iMap)
 	return iCount;
 }
 
-public GetVotesForOption(iVote, iOption)
+public int GetVotesForOption(int iVote, int iOption)
 {
-	new iCount;
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	int iCount;
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
 		if(g_bVoteForOption[iVoter][iVote][iOption])
 			iCount++;
@@ -2721,10 +2781,10 @@ public GetVotesForOption(iVote, iOption)
 	return iCount;
 }
 
-public GetVotesForSimple(iVote)
+public int GetVotesForSimple(int iVote)
 {
-	new iCount;
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	int iCount;
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
 		if(g_bVoteForSimple[iVoter][iVote])
 			iCount++;
@@ -2732,16 +2792,16 @@ public GetVotesForSimple(iVote)
 	return iCount;
 }
 
-public GetRequiredVotes(iVote)
+public int GetRequiredVotes(int iVote)
 {
-	new iCount;
-	for(new iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
+	int iCount;
+	for(int iVoter = 1; iVoter <= MaxClients; iVoter++) if(IsClientInGame(iVoter))
 	{
 		if(!IsFakeClient(iVoter))
 			iCount++;
 	}
 
-	new iRequired = RoundToCeil(float(iCount) * g_flVoteRatio[iVote]);
+	int iRequired = RoundToCeil(float(iCount) * g_flVoteRatio[iVote]);
 	if(iRequired < g_iVoteMinimum[iVote])
 		iRequired = g_iVoteMinimum[iVote];
 
@@ -2752,52 +2812,52 @@ public GetRequiredVotes(iVote)
 }
 
 // ====[ TIMERS ]==============================================================
-public Action:Timer_Second(Handle:hTimer)
+public Action Timer_Second(Handle hTimer)
 {
 	g_iMapTime++;
 }
 
 // ====[ STOCKS ]==============================================================
-stock bool:IsValidClient(iClient)
+stock bool IsValidClient(int iClient)
 {
 	if(iClient <= 0 || iClient > MaxClients || !IsClientInGame(iClient))
 		return false;
 	return true;
 }
-stock bool:IsAFKClient(iClient)
+stock bool IsAFKClient(int iClient)
 {
 	if(AFKM_GetClientAFKTime(iClient) >= iAfkTime)
 		return true;
 	return false;
  }
-stock FormatVoterString(iVote, iVoter, String:strBuffer[], iBufferSize)
+stock void FormatVoterString(int iVote, int iVoter, char[] strBuffer, int iBufferSize)
 {
-	decl String:strVoter[MAX_NAME_LENGTH];
+	char strVoter[MAX_NAME_LENGTH];
 	IntToString(iVoter, strVoter, sizeof(strVoter));
 
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_INDEX}", strVoter, false);
 
-	decl String:strVoterId[MAX_NAME_LENGTH];
+	char strVoterId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iVoter), strVoterId, sizeof(strVoterId));
 
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_ID}", strVoterId, false);
 
-	decl String:strVoterSteamId[MAX_NAME_LENGTH];
+	char strVoterSteamId[MAX_NAME_LENGTH];
 	GetClientAuthId(iVoter, AuthId_Steam2, strVoterSteamId, sizeof(strVoterSteamId));
 
 	QuoteString(strVoterSteamId, sizeof(strVoterSteamId));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_STEAMID}", strVoterSteamId, false);
 
-	decl String:strVoterName[MAX_NAME_LENGTH];
+	char strVoterName[MAX_NAME_LENGTH];
 	GetClientName(iVoter, strVoterName, sizeof(strVoterName));
 
 	QuoteString(strVoterName, sizeof(strVoterName));
 	ReplaceString(strBuffer, iBufferSize, "{VOTER_NAME}", strVoterName, false);
 }
 
-stock FormatVoteString(iVote, iChoice = -1, String:strBuffer[], iBufferSize)
+stock void FormatVoteString(int iVote, int iChoice = -1, char[] strBuffer, int iBufferSize)
 {
-	decl String:strVoteAmount[MAX_NAME_LENGTH];
+	char strVoteAmount[MAX_NAME_LENGTH];
 	switch(g_iVoteType[iVote])
 	{
 		case VoteType_Players: IntToString(GetVotesForTarget(iVote, iChoice), strVoteAmount, sizeof(strVoteAmount));
@@ -2809,19 +2869,19 @@ stock FormatVoteString(iVote, iChoice = -1, String:strBuffer[], iBufferSize)
 	QuoteString(strVoteAmount, sizeof(strVoteAmount));
 	ReplaceString(strBuffer, iBufferSize, "{VOTE_AMOUNT}", strVoteAmount, false);
 
-	decl String:strVoteRequired[MAX_NAME_LENGTH];
+	char strVoteRequired[MAX_NAME_LENGTH];
 	IntToString(GetRequiredVotes(iVote), strVoteRequired, sizeof(strVoteRequired));
 
 	QuoteString(strVoteRequired, sizeof(strVoteRequired));
 	ReplaceString(strBuffer, iBufferSize, "{VOTE_REQUIRED}", strVoteRequired, false);
 }
 
-stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
+stock void FormatTargetString(int iVote, int iTarget, char[] strBuffer, int iBufferSize)
 {
 	// Check if target disconnected (Anti-Grief)
 	if(!IsValidClient(iTarget))
 	{
-		decl String:strAntiGrief[255];
+		char strAntiGrief[255];
 		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetIndex);
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", g_strVoteTargetIndex, false);
 
@@ -2838,60 +2898,60 @@ stock FormatTargetString(iVote, iTarget, String:strBuffer[], iBufferSize)
 		return;
 	}
 
-	decl String:strTarget[MAX_NAME_LENGTH];
+	char strTarget[MAX_NAME_LENGTH];
 	IntToString(iTarget, strTarget, sizeof(strTarget));
 
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_INDEX}", strTarget, false);
 
-	decl String:strTargetId[MAX_NAME_LENGTH];
+	char strTargetId[MAX_NAME_LENGTH];
 	IntToString(GetClientUserId(iTarget), strTargetId, sizeof(strTargetId));
 
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_ID}", strTargetId, false);
 
-	decl String:strTargetSteamId[MAX_NAME_LENGTH];
+	char strTargetSteamId[MAX_NAME_LENGTH];
 	GetClientAuthId(iTarget, AuthId_Steam2, strTargetSteamId, sizeof(strTargetSteamId));
 
 	QuoteString(strTargetSteamId, sizeof(strTargetSteamId));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_STEAMID}", strTargetSteamId, false);
 
-	decl String:strTargetName[MAX_NAME_LENGTH];
+	char strTargetName[MAX_NAME_LENGTH];
 	GetClientName(iTarget, strTargetName, sizeof(strTargetName));
 
 	QuoteString(strTargetName, sizeof(strTargetName));
 	ReplaceString(strBuffer, iBufferSize, "{TARGET_NAME}", strTargetName, false);
 }
 
-stock FormatMapString(iVote, iMap, String:strBuffer[], iBufferSize)
+stock void FormatMapString(int iVote, int iMap, char[] strBuffer, int iBufferSize)
 {
-	decl String:strMap[MAX_NAME_LENGTH];
+	char strMap[MAX_NAME_LENGTH];
 	GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
 
 	QuoteString(strMap, sizeof(strMap));
 	ReplaceString(strBuffer, iBufferSize, "{MAP_NAME}", strMap, false);
 
-	decl String:strCurrentMap[MAX_NAME_LENGTH];
+	char strCurrentMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strCurrentMap, sizeof(strCurrentMap));
 
 	QuoteString(strCurrentMap, sizeof(strCurrentMap));
 	ReplaceString(strBuffer, iBufferSize, "{CURRENT_MAP_NAME}", strCurrentMap, false);
 }
 
-stock FormatOptionString(iVote, iOption, String:strBuffer[], iBufferSize)
+stock void FormatOptionString(int iVote, int iOption, char[] strBuffer, int iBufferSize)
 {
-	decl String:strOptionName[MAX_NAME_LENGTH];
+	char strOptionName[MAX_NAME_LENGTH];
 	GetArrayString(g_hArrayVoteOptionName[iVote], iOption, strOptionName, sizeof(strOptionName));
 
 	QuoteString(strOptionName, sizeof(strOptionName));
 	ReplaceString(strBuffer, iBufferSize, "{OPTION_NAME}", strOptionName, false);
 
-	decl String:strOptionResult[MAX_NAME_LENGTH];
+	char strOptionResult[MAX_NAME_LENGTH];
 	GetArrayString(g_hArrayVoteOptionResult[iVote], iOption, strOptionResult, sizeof(strOptionResult));
 
 	QuoteString(strOptionResult, sizeof(strOptionResult));
 	ReplaceString(strBuffer, iBufferSize, "{OPTION_RESULT}", strOptionResult, false);
 }
 
-stock QuoteString(String:strBuffer[], iBuffersize)
+stock void QuoteString(char[] strBuffer, int iBuffersize)
 {
 	Format(strBuffer, iBuffersize + 4, "\"%s\"", strBuffer);
 }
