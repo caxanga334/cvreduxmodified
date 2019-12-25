@@ -474,10 +474,16 @@ public void OnClientDisconnect(int iTarget)
 			}
 		}
 	}
+	if ((g_bMapEnded) && (IsVoteInProgress()))
+	{
+		CancelVote(); // cancel any running votes on map end.
+		LogToFileEx(g_sLogPath,
+			"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+	}
 	// Experimental vote evasion logging
 	if(g_iCurrentVoteTarget >= 1 && IsVoteInProgress()) // Do we have a target and the vote is in progress
 	{
-		if((iTarget == g_iCurrentVoteTarget) && (!g_bMapEnded)) // the id of the player who just disconnected matches the vote target id.
+		if(iTarget == g_iCurrentVoteTarget) // the id of the player who just disconnected matches the vote target id.
 		{
 			// get target's name
 			char LogstrTargetName[MAX_NAME_LENGTH];
