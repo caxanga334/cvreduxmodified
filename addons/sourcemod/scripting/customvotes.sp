@@ -57,7 +57,7 @@ bool g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 bool g_bKzTimer = false;
 bool g_bSourceBans = false;
 bool g_bAfkManager = false;
-//bool g_bMapEnded = false;
+bool g_bMapEnded = false;
 float g_flVoteRatio[MAX_VOTE_TYPES];
 char g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
 char g_strVoteConVar[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -181,7 +181,7 @@ public void OnPluginStart()
 public void OnMapStart()
 {
 	g_iMapTime = 0;
-	//g_bMapEnded = false; // map started, set it to false
+	g_bMapEnded = false; // map started, set it to false
 
 	char strMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strMap, sizeof(strMap));
@@ -233,6 +233,7 @@ public Action ChangeLevelEnd(const char[] output, int caller, int activator, flo
 		{
 			if (!bCancelVoteGameEnd)
 			{
+				g_bMapEnded = true;
 				if(IsVoteInProgress()) // is vote in progress?
 				{
 					CancelVote(); // cancel any running votes on map end.
@@ -249,6 +250,7 @@ public Action ChangeLevelCmdEnd(int client, int args)
 	{
 		if (!bCancelVoteGameEnd)
 		{
+			g_bMapEnded = true;
 			if(IsVoteInProgress()) // is vote in progress?
 			{
 				CancelVote(); // cancel any running votes on map end.
@@ -475,7 +477,7 @@ public void OnClientDisconnect(int iTarget)
 	// Experimental vote evasion logging
 	if(g_iCurrentVoteTarget >= 1 && IsVoteInProgress()) // Do we have a target and the vote is in progress
 	{
-		if(iTarget == g_iCurrentVoteTarget) // the id of the player who just disconnected matches the vote target id.
+		if((iTarget == g_iCurrentVoteTarget) && (!g_bMapEnded)) // the id of the player who just disconnected matches the vote target id.
 		{
 			// get target's name
 			char LogstrTargetName[MAX_NAME_LENGTH];
