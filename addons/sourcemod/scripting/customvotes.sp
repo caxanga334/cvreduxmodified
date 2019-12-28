@@ -165,9 +165,9 @@ public void OnPluginStart()
 	if(IsTF2 == true)
 	{
 		HookEvent("mvm_wave_failed", TF_WaveFailed);
-		HookEvent("teamplay_win_panel", TF_TeamPlayWinPanel);
-		HookEvent("arena_win_panel", TF_ArenaWinPanel);
-		HookEvent("pve_win_panel", TF_MVMWinPanel);
+		HookEvent("teamplay_win_panel", TF_EventsEnded);
+		HookEvent("arena_win_panel", TF_EventsEnded);
+		HookEvent("pve_win_panel", TF_EventsEnded);
 	}
 	if(IsCSGO == true)
 	{
@@ -207,10 +207,10 @@ public void OnMapStart()
 
 public void OnMapEnd()
 {
-/* 	if(!g_bMapEnded)
+ 	if(!g_bMapEnded)
 	{
 		g_bMapEnded = true;
-	} */
+	}
 	
 	if((!IsCSGO || !IsTF2) && !bCancelVoteGameEnd)
 	{
@@ -479,6 +479,7 @@ public void OnClientDisconnect(int iTarget)
 		CancelVote(); // cancel any running votes on map end.
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] Map end while a vote was in progress, canceling vote.");
+		g_iCurrentVoteTarget = -1;
 	}
 	// Experimental vote evasion logging
 	if(g_iCurrentVoteTarget >= 1 && IsVoteInProgress()) // Do we have a target and the vote is in progress
@@ -2176,7 +2177,7 @@ public Action TF_WaveFailed(Handle event, const char[] name, bool dontBroadcast)
 	}
 }
 // Cancel votes on Game Over (TF2)
-public Action TF_TeamPlayWinPanel(Handle event, const char[] name, bool dontBroadcast)
+public Action TF_EventsEnded(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(bCancelVoteGameEnd)
 	{
@@ -2192,45 +2193,7 @@ public Action TF_TeamPlayWinPanel(Handle event, const char[] name, bool dontBroa
 	if(bDebugMode) // If debug is enabled, log events
 	{
 		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_TeamPlayWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
-	}
-}
-public Action TF_ArenaWinPanel(Handle event, const char[] name, bool dontBroadcast)
-{
-	if(bCancelVoteGameEnd)
-	{
-		//g_bMapEnded = true;
-		if(IsVoteInProgress()) // is vote in progress?
-		{
-			CancelVote(); // cancel any running votes on map end.
-			LogToFileEx(g_sLogPath,
-				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
-		}
-	}
-	
-	if(bDebugMode) // If debug is enabled, log events
-	{
-		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_ArenaWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
-	}
-}
-public Action TF_MVMWinPanel(Handle event, const char[] name, bool dontBroadcast)
-{
-	if(bCancelVoteGameEnd)
-	{
-		//g_bMapEnded = true;
-		if(IsVoteInProgress()) // is vote in progress?
-		{
-			CancelVote(); // cancel any running votes on map end.
-			LogToFileEx(g_sLogPath,
-				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
-		}
-	}
-	
-	if(bDebugMode) // If debug is enabled, log events
-	{
-		LogToFileEx(g_sLogPath,
-			"[Custom Votes] DEBUG: Event TF_MVMWinPanel. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
+			"[Custom Votes] DEBUG: Event %s. bCancelVoteGameEnd: %d IsVoteInProgress: %d", name, bCancelVoteGameEnd, IsVoteInProgress());
 	}
 }
 // Cancel votes on round end (CSGO)
