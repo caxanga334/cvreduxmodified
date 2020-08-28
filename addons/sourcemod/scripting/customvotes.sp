@@ -381,7 +381,7 @@ public void OnClientConnected(int iTarget)
 				GetArrayString(g_hArrayVotePlayerIP[iVoter][iVote], iIP, strSavedIP, sizeof(strSavedIP));
 				if(StrEqual(strSavedIP, strClientIP))
 				{
-					g_bVoteForTarget[iVoter][iTarget] = true;
+					g_bVoteForTarget[iVoter][iVote][iTarget] = true;
 					break;
 				}
 			}
@@ -410,7 +410,7 @@ public void OnClientAuthorized(int iTarget, const char[] strTargetSteamId)
 				GetArrayString(g_hArrayVotePlayerSteamID[iVoter][iVote], iSteamId, strClientAuth, sizeof(strClientAuth));
 				if(StrEqual(strTargetSteamId, strClientAuth))
 				{
-					g_bVoteForTarget[iVoter][iTarget] = true;
+					g_bVoteForTarget[iVoter][iVote][iTarget] = true;
 					break;
 				}
 			}
@@ -2037,11 +2037,10 @@ public void Vote_Simple(int iVote, int iVoter)
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
 		
 		// Print vote to console ( HLSW )
-		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ). Selected Option: %s",
+		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ).",
 			LogstrName,
 			LogstrVoterName,
-			LstrVoterAuth,
-			LstrOptionResult);
+			LstrVoterAuth);
 		
 		// Logging Vote
 		LogToFileEx(g_sLogPath,
