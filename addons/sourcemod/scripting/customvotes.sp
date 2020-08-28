@@ -947,6 +947,8 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 
 		CPrintToChatAll("%s", strNotification);
 		
+		CreateLogFile();
+		
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -966,6 +968,14 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 		// get target's SteamID
 		char LstrTargetAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iTarget, AuthId_Steam2, LstrTargetAuth, sizeof(LstrTargetAuth));
+		
+		// Print vote to console ( HLSW )
+		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ) targeting %s ( %s ).",
+			LogstrName,
+			LogstrVoterName,
+			LstrVoterAuth,
+			LogstrTargetName,
+			LstrTargetAuth);
 		
 		// Logging Vote
 		LogToFileEx(g_sLogPath,
@@ -1363,6 +1373,8 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 
 		CPrintToChatAll("%s", strNotification);
 		
+		CreateLogFile();
+		
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -1382,6 +1394,14 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 		// get target map name
 		char LogstrMap[MAX_NAME_LENGTH];
 		GetArrayString(g_hArrayVoteMapList[iVote], iMap, LogstrMap, sizeof(LogstrMap));
+		
+		// Print vote to console ( HLSW )
+		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ). To change map from %s to %s.",
+			LogstrName,
+			LogstrVoterName,
+			LstrVoterAuth,
+			LogstrCurrentMap,
+			LogstrMap);
 		
 		// Logging Vote
 		LogToFileEx(g_sLogPath,
@@ -1715,6 +1735,8 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 		ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
 
 		CPrintToChatAll("%s", strNotification);
+		
+		CreateLogFile();
 
 		// get vote name
 		char LogstrName[56];
@@ -1731,6 +1753,13 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 		// get vote option
 		char LstrOptionResult[MAX_NAME_LENGTH];
 		GetArrayString(g_hArrayVoteOptionResult[iVote], iOption, LstrOptionResult, sizeof(LstrOptionResult));
+		
+		// Print vote to console ( HLSW )
+		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ). Selected Option: %s",
+			LogstrName,
+			LogstrVoterName,
+			LstrVoterAuth,
+			LstrOptionResult);
 		
 		// Logging Vote
 		LogToFileEx(g_sLogPath,
@@ -1993,6 +2022,8 @@ public void Vote_Simple(int iVote, int iVoter)
 
 		CPrintToChatAll("%s", strNotification);
 		
+		CreateLogFile();
+		
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -2004,6 +2035,13 @@ public void Vote_Simple(int iVote, int iVoter)
 		// get voter's SteamID
 		char LstrVoterAuth[MAX_NAME_LENGTH];
 		GetClientAuthId(iVoter, AuthId_Steam2, LstrVoterAuth, sizeof(LstrVoterAuth));
+		
+		// Print vote to console ( HLSW )
+		PrintToServer("[Custom Votes] Vote %s started by %s ( %s ). Selected Option: %s",
+			LogstrName,
+			LogstrVoterName,
+			LstrVoterAuth,
+			LstrOptionResult);
 		
 		// Logging Vote
 		LogToFileEx(g_sLogPath,
