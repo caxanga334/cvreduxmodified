@@ -518,6 +518,8 @@ public void OnClientDisconnect(int iTarget)
 			}
 		}
 	}
+	
+	ResetVotesIfEmpty();
 }
 
 void CreateLogFile() // creates the log file in the system
@@ -526,6 +528,31 @@ void CreateLogFile() // creates the log file in the system
 	FormatTime(cTime, sizeof(cTime), "%Y%m%d"); // add date to file name
 	// Path used for logging.
 	BuildPath(Path_SM, g_sLogPath, sizeof(g_sLogPath), "logs/customvotes_%s.log", cTime);
+}
+
+// reset all votes max passes if the server is empty
+void ResetVotesIfEmpty()
+{
+	bool isempty = true;
+
+	for(int i = 1;i <= MaxClients;i++)
+	{
+		if( IsClientConnected(i) && IsClientInGame(i) )
+		{
+			isempty = false;
+			break;
+		}
+	}
+	
+	if( isempty )
+	{
+		for(int iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
+		{
+			g_iVotePasses[iVote] = 0;
+		}
+		
+		LogToFileEx(g_sLogPath, "[Custom Votes] Server is empty, resetting all votes.");
+	}
 }
 
 // ====[ COMMANDS ]============================================================
