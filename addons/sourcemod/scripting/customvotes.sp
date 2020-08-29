@@ -22,6 +22,7 @@ Handle g_hArrayVoteOptionName[MAX_VOTE_TYPES];
 Handle g_hArrayVoteOptionResult[MAX_VOTE_TYPES];
 Handle g_hArrayVoteMapList[MAX_VOTE_TYPES];
 Handle g_hArrayRecentMaps;
+Handle g_hCheckEmptyTimer;
 
 // ====[ VARIABLES ]===========================================================
 int g_iMapTime;
@@ -519,7 +520,12 @@ public void OnClientDisconnect(int iTarget)
 		}
 	}
 	
-	ResetVotesIfEmpty();
+	if( g_hCheckEmptyTimer == null )
+	{
+		g_hCheckEmptyTimer = CreateTimer(0.2, Timer_CheckEmpty, _, TIMER_FLAG_NO_MAPCHANGE);
+	}
+	
+	
 }
 
 void CreateLogFile() // creates the log file in the system
@@ -530,21 +536,17 @@ void CreateLogFile() // creates the log file in the system
 	BuildPath(Path_SM, g_sLogPath, sizeof(g_sLogPath), "logs/customvotes_%s.log", cTime);
 }
 
+public Action Timer_CheckEmpty(Handle timer)
+{
+	ResetVotesIfEmpty();
+	g_hCheckEmptyTimer = null;
+	return Plugin_Stop;
+}
+
 // reset all votes max passes if the server is empty
 void ResetVotesIfEmpty()
 {
-	bool isempty = true;
-
-	for(int i = 1;i <= MaxClients;i++)
-	{
-		if( IsClientConnected(i) && IsClientInGame(i) )
-		{
-			isempty = false;
-			break;
-		}
-	}
-	
-	if( isempty )
+	if( GetClientCount(true) == 0 )
 	{
 		for(int iVote = 0; iVote < MAX_VOTE_TYPES; iVote++)
 		{
