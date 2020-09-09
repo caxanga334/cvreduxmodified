@@ -8,7 +8,7 @@
 #include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.18.0U-dev"
+#define PLUGIN_VERSION "1.18.1U-dev"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 1024
 #define MAX_VOTE_OPTIONS 32
@@ -522,7 +522,7 @@ public void OnClientDisconnect(int iTarget)
 	
 	if( g_hCheckEmptyTimer == null )
 	{
-		g_hCheckEmptyTimer = CreateTimer(0.2, Timer_CheckEmpty, _, TIMER_FLAG_NO_MAPCHANGE);
+		g_hCheckEmptyTimer = CreateTimer(0.2, Timer_CheckEmpty);
 	}
 	
 	
