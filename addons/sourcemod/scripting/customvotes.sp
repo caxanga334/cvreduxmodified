@@ -155,9 +155,7 @@ public void OnPluginStart()
 	AddCommandListener(OnClientSayCmd, "say_team");
 
 	g_bKzTimer = LibraryExists("KZTimer");
-
-	if(g_hArrayRecentMaps == INVALID_HANDLE)
-		g_hArrayRecentMaps = CreateArray(MAX_NAME_LENGTH);
+	g_hArrayRecentMaps = CreateArray(MAX_NAME_LENGTH);
 		
 	DetectGame();
 	
@@ -186,14 +184,14 @@ public void OnMapStart()
 
 	char strMap[MAX_NAME_LENGTH];
 	GetCurrentMap(strMap, sizeof(strMap));
+	int index = FindStringInArray(g_hArrayRecentMaps, strMap);
 
-	if(GetArraySize(g_hArrayRecentMaps) <= 0)
-		PushArrayString(g_hArrayRecentMaps, strMap);
-	else
+	if (index > -1)
 	{
-		ShiftArrayUp(g_hArrayRecentMaps, 0);
-		SetArrayString(g_hArrayRecentMaps, 0, strMap);
+		RemoveFromArray(g_hArrayRecentMaps, index); // Remove duplicate map
 	}
+
+	PushArrayString(g_hArrayRecentMaps, strMap);
 	
 	if (IsSyn)
 	{
@@ -1182,51 +1180,47 @@ public void Menu_MapVote(int iVote, int iVoter)
 	char strCurrentMap[MAX_NAME_LENGTH];
 	char strRecentMap[MAX_NAME_LENGTH];
 	char strBuffer[MAX_NAME_LENGTH + 12];
+	GetCurrentMap(strCurrentMap, sizeof(strCurrentMap));
 
-	int iLastMapCount = GetArraySize(g_hArrayRecentMaps);
-	if(iLastMapCount > g_iVoteMapRecent[iVote])
-		iLastMapCount = g_iVoteMapRecent[iVote];
+	int iActiveMap = GetArraySize(g_hArrayRecentMaps) - 1;
+	int iOldestRecentMap = iActiveMap - g_iVoteMapRecent[iVote];
+	iOldestRecentMap = (iOldestRecentMap > 0) ? iOldestRecentMap : 0;
 
 	int iMapCount = GetArraySize(g_hArrayVoteMapList[iVote]);
 	if(iMapCount > MAX_VOTE_MAPS)
 		iMapCount = MAX_VOTE_MAPS;
 
-	for(int iMap = 0; iMap < iMapCount; iMap++)
+	for(int iMap = 0; iMap < iMapCount; ++iMap)
 	{
-		int iFlags;
-		if(g_bVoteMapCurrent[iVote])
+		GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
+		bool isMapAllowed = true;
+
+		// Loop over the maps to must be excluded
+		for(int iRecentMap = iActiveMap - view_as<int>(g_bVoteMapCurrent[iVote]);
+			iRecentMap >= iOldestRecentMap; --iRecentMap)
 		{
-			GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
-			GetCurrentMap(strCurrentMap, sizeof(strCurrentMap));
+			GetArrayString(g_hArrayRecentMaps, iRecentMap, strRecentMap, sizeof(strRecentMap));
 
 			if(StrEqual(strMap, strRecentMap))
-				iFlags = ITEMDRAW_DISABLED;
-		}
-
-		if(iLastMapCount > 0)
-		{
-			for(int iLastMap = 0; iLastMap < iLastMapCount; iLastMap++)
 			{
-				GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
-				GetArrayString(g_hArrayRecentMaps, iLastMap, strRecentMap, sizeof(strRecentMap));
-
-				if(StrEqual(strMap, strRecentMap))
-				{
-					iFlags = ITEMDRAW_DISABLED;
-					break;
-				}
+				isMapAllowed = false;
+				break;
 			}
 		}
 
-		if(g_bVoteCallVote[iVote])
-			Format(strBuffer, sizeof(strBuffer), "%s", strMap);
-		else
-			Format(strBuffer, sizeof(strBuffer), "%s [%i/%i]", strMap, GetVotesForMap(iVote, iMap), GetRequiredVotes(iVote));
+		if (isMapAllowed)
+		{
+			if(g_bVoteCallVote[iVote])
+				Format(strBuffer, sizeof(strBuffer), "%s", strMap);
+			else
+				Format(strBuffer, sizeof(strBuffer), "%s [%i/%i]", strMap, GetVotesForMap(iVote, iMap),
+					GetRequiredVotes(iVote));
 
-		if(GetVotesForMap(iVote, iMap) > 0)
-			InsertMenuItem(hMenu, 0, strMap, strBuffer, iFlags);
-		else
-			AddMenuItem(hMenu, strMap, strBuffer, iFlags);
+			if(GetVotesForMap(iVote, iMap) > 0)
+				InsertMenuItem(hMenu, 0, strMap, strBuffer);
+			else
+				AddMenuItem(hMenu, strMap, strBuffer);
+		}
 	}
 
 	for (int i=1; i<=MaxClients; i++)
