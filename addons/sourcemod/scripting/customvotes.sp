@@ -861,7 +861,7 @@ public int MenuHandler_PlayersVote(Handle hMenu, MenuAction iAction, int iVoter,
 		g_bVoteForTarget[iVoter][iVote][iTarget] = true;
 		if(!g_bVoteMultiple[iVote])
 		{
-			for(int iClient = 0; iClient <= MaxClients; iClient++)
+			for(int iClient = 1; iClient <= MaxClients; iClient++)
 			{
 				if(iClient != iTarget)
 					g_bVoteForTarget[iVoter][iVote][iClient] = false;
@@ -2484,7 +2484,7 @@ public void Config_Load()
 				// Restricts players to only casting selections on team members
 				g_bVotePlayersTeam[iVote] = view_as<bool>(KvGetNum(hKeyValues, "team"));
 
-				for(int iTarget = 0; iTarget <= MaxClients; iTarget++)
+				for(int iTarget = 1; iTarget <= MaxClients; iTarget++)
 				{
 					g_hArrayVotePlayerSteamID[iTarget][iVote] = CreateArray(MAX_NAME_LENGTH);
 					g_hArrayVotePlayerIP[iTarget][iVote] = CreateArray(MAX_NAME_LENGTH);
