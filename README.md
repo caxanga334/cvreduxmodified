@@ -68,3 +68,5 @@ For contributions, please use pull requests.
 * Download the plugin source from the reposity
 * Get the latest version of kztimer.inc from [here](https://bitbucket.org/kztimerglobalteam/kztimerglobal/src/master/scripting/include/kztimer.inc).
 * Get the latest version of afk_manager.inc from [here](https://forums.alliedmods.net/showthread.php?p=708265).
+* Get the latest version of multicolors from [here](https://github.com/Bara/Multi-Colors).
+* Get the latest version of sourcebanspp.inc from [here](https://github.com/sbpp/sourcebans-pp/).
