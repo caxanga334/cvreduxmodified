@@ -783,10 +783,7 @@ public void Menu_PlayersVote(int iVote, int iVoter)
 		else
 			Format(strName, sizeof(strName), "%N [%i/%i]", iTarget, GetVotesForTarget(iVote, iTarget), GetRequiredVotes(iVote));
 
-		if(GetVotesForTarget(iVote, iTarget) > 0)
-			InsertMenuItem(hMenu, 0, strUserId, strName, iFlags);
-		else
-			AddMenuItem(hMenu, strUserId, strName, iFlags);
+		AddVoteMenuOption(hMenu, GetVotesForTarget(iVote, iTarget), strUserId, strName, iFlags);
 		iCount++;
 	}
 
@@ -1116,9 +1113,12 @@ public int VoteHandler_Players(Handle hMenu, MenuAction iAction, int iVoter, int
 			CPrintToChatAll("%s", strNotification);
 		}
 
-		g_iCurrentVoteTarget = -1;
-		g_iCurrentVoteIndex = -1;
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForTarget[i][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = false;
+		}
 
+		g_iCurrentVoteIndex = g_iCurrentVoteTarget = -1;
 		strcopy(g_strVoteTargetIndex, sizeof(g_strVoteTargetIndex), "");
 		strcopy(g_strVoteTargetId, sizeof(g_strVoteTargetId), "");
 		strcopy(g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth), "");
@@ -1195,7 +1195,7 @@ public void Menu_MapVote(int iVote, int iVoter)
 		GetArrayString(g_hArrayVoteMapList[iVote], iMap, strMap, sizeof(strMap));
 		bool isMapAllowed = true;
 
-		// Loop over the maps to must be excluded
+		// Loop over the maps that must be excluded
 		for(int iRecentMap = iActiveMap - view_as<int>(g_bVoteMapCurrent[iVote]);
 			iRecentMap >= iOldestRecentMap; --iRecentMap)
 		{
@@ -1216,10 +1216,7 @@ public void Menu_MapVote(int iVote, int iVoter)
 				Format(strBuffer, sizeof(strBuffer), "%s [%i/%i]", strMap, GetVotesForMap(iVote, iMap),
 					GetRequiredVotes(iVote));
 
-			if(GetVotesForMap(iVote, iMap) > 0)
-				InsertMenuItem(hMenu, 0, strMap, strBuffer);
-			else
-				AddMenuItem(hMenu, strMap, strBuffer);
+			AddVoteMenuOption(hMenu, GetVotesForMap(iVote, iMap), strMap, strBuffer);
 		}
 	}
 
@@ -1528,8 +1525,13 @@ public int VoteHandler_Map(Handle hMenu, MenuAction iAction, int iVoter, int iPa
 
 			CPrintToChatAll("%s", strNotification);
 		}
-		g_iCurrentVoteMap = -1;
-		g_iCurrentVoteIndex = -1;
+
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForMap[i][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
+		}
+
+		g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
 	}
 	return 0;
 }
@@ -1595,11 +1597,7 @@ public void Menu_ListVote(int iVote, int iVoter)
 			Format(strBuffer, sizeof(strBuffer), "%s [%i/%i]", strOptionName, GetVotesForOption(iVote, iOption), GetRequiredVotes(iVote));
 
 		IntToString(iOption, strIndex, sizeof(strIndex));
-
-		if(GetVotesForOption(iVote, iOption) > 0)
-			InsertMenuItem(hMenu, 0, strIndex, strBuffer);
-		else
-			AddMenuItem(hMenu, strIndex, strBuffer);
+		AddVoteMenuOption(hMenu, GetVotesForOption(iVote, iOption), strIndex, strBuffer);
 	}
 
 	for (int i=1; i<=MaxClients; i++)
@@ -1886,8 +1884,13 @@ public int VoteHandler_List(Handle hMenu, MenuAction iAction, int iVoter, int iP
 
 			CPrintToChatAll("%s", strNotification);
 		}
-		g_iCurrentVoteOption = -1;
-		g_iCurrentVoteIndex = -1;
+
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForOption[i][g_iCurrentVoteIndex][g_iCurrentVoteOption] = false;
+		}
+
+		g_iCurrentVoteIndex = g_iCurrentVoteOption = -1;
 	}
 	return 0;
 }
@@ -2214,6 +2217,12 @@ public int VoteHandler_Simple(Handle hMenu, MenuAction iAction, int iVoter, int 
 
 			CPrintToChatAll("%s", strNotification);
 		}
+
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForSimple[i][g_iCurrentVoteIndex] = false;
+		}
+
 		g_iCurrentVoteIndex = -1;
 	}
 	return 0;
@@ -2840,6 +2849,18 @@ public int GetRequiredVotes(int iVote)
 		iRequired = 1;
 
 	return iRequired;
+}
+
+void AddVoteMenuOption(Handle menu, int curVotesCount, const char[] info,
+	const char[] display, int style = ITEMDRAW_DEFAULT)
+{
+	if (curVotesCount > 0 && GetMenuItemCount(menu) > 0)
+	{
+		InsertMenuItem(menu, 0, info, display, style);
+		return;
+	}
+
+	AddMenuItem(menu, info, display, style);
 }
 
 // ====[ TIMERS ]==============================================================
