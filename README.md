@@ -59,6 +59,8 @@ STEAM_ID ) targeting rees123 ( STEAM_ID ).
 For stable version, check the [releases](https://github.com/caxanga334/cvreduxmodified/releases) tab.
 For development version, download the repository.
 
+You can also download the latest development version from the [automated builds](https://github.com/caxanga334/cvreduxmodified/actions).
+
 Feel free to report bugs/give suggestions.
 
 For contributions, please use pull requests.
