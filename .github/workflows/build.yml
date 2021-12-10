@@ -82,6 +82,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: cv-redux-${{ matrix.SM_VERSION }}-${{ steps.short-sha.outputs.sha }}.zip
+          name: cv-redux-${{ matrix.SM_VERSION }}-${{ steps.short-sha.outputs.sha }}
           path: |
               ${{ env.BUILD_PATH }}/*
