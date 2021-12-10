@@ -1,0 +1,87 @@
+name: Compile Plugin
+
+on:
+  push:
+    branches: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        SM_VERSION: ["1.10"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: benjlevesque/short-sha@v1.2
+        id: short-sha
+
+      - name: Set environment variables
+        run: |
+          SOURCEMOD_PATH=$GITHUB_WORKSPACE/addons/sourcemod
+          BUILD_PATH=$GITHUB_WORKSPACE/build
+          echo "SOURCEMOD_PATH=$SOURCEMOD_PATH" >> $GITHUB_ENV
+          echo "BUILD_PATH=$BUILD_PATH" >> $GITHUB_ENV
+          echo "SCRIPTS_PATH=$SOURCEMOD_PATH/scripting" >> $GITHUB_ENV
+          echo "INCLUDES_PATH=$SOURCEMOD_PATH/scripting/include" >> $GITHUB_ENV
+          echo "PLUGINS_PATH=$SOURCEMOD_PATH/plugins" >> $GITHUB_ENV
+          
+      - name: Setup SourcePawn Compiler ${{ matrix.SM_VERSION }}
+        id: setup_sp
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: ${{ matrix.SM_VERSION }}
+
+      - name: Make Folders
+        run: |
+          mkdir include
+          mkdir -p include/multicolors
+        working-directory: ${{ env.SCRIPTS_PATH }}
+
+      - name: Get Include Files
+        run: |
+          echo "Begin downloading include files"
+
+          wget https://github.com/sbpp/sourcebans-pp/blob/v1.x/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
+          wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/3f46f14c1c47df6bce1af7051ab47edba9f52bd8/scripting/include/kztimer.inc -O kztimer.inc
+          wget "https://forums.alliedmods.net/attachment.php?attachmentid=168028&d=1516358726" -O afk_manager.inc
+          wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors.inc -O multicolors.inc
+          cd multicolors
+          wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors/colors.inc -O colors.inc
+          wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors/morecolors.inc -O morecolors.inc
+          echo "Done downloading include files."
+          ls -la
+        working-directory: ${{ env.INCLUDES_PATH }}
+
+      - name: Compile plugins
+        run: |
+          for file in customvotes.sp
+          do
+            echo -e "\nCompiling $file..."
+            spcomp -E -w234 -O2 -v2 -i include $file
+          done
+          echo "===OUT FILES==="
+          ls
+        working-directory: ${{ env.SCRIPTS_PATH }}
+
+      - name: Post Build
+        run: |
+          echo "Creating build folder"
+          mkdir build
+          mkdir -p build/addons/sourcemod/configs
+          mkdir -p build/addons/sourcemod/plugins
+          mkdir -p build/addons/sourcemod/translations
+          mv $SCRIPTS_PATH/customvotes.smx $BUILD_PATH/addons/sourcemod/plugins/customvotes.smx
+          mv $SOURCEMOD_PATH/configs/customvotes.cfg $BUILD_PATH/addons/sourcemod/configs/customvotes.cfg
+          mv $SOURCEMOD_PATH/translations/* $BUILD_PATH/addons/sourcemod/translations/
+          cd build
+          ls -la
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cv-redux-${{ matrix.SM_VERSION }}-${{ steps.short-sha.outputs.sha }}.zip
+          path: |
+              ${{ env.BUILD_PATH }}/*
