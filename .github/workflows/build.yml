@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "Begin downloading include files"
 
-          wget https://github.com/sbpp/sourcebans-pp/blob/v1.x/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
+          wget https://raw.githubusercontent.com/sbpp/sourcebans-pp/v1.x/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
           wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/3f46f14c1c47df6bce1af7051ab47edba9f52bd8/scripting/include/kztimer.inc -O kztimer.inc
           wget "https://forums.alliedmods.net/attachment.php?attachmentid=168028&d=1516358726" -O afk_manager.inc
           wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors.inc -O multicolors.inc
