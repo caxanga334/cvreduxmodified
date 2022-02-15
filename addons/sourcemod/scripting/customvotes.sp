@@ -10,7 +10,7 @@
 #define PLUGIN_NAME "Custom Votes"
 #define PLUGIN_VERSION "1.19.2U"
 #define MAX_VOTE_TYPES 32
-#define MAX_VOTE_MAPS 1024
+#define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
 #pragma semicolon 1;
 #pragma newdecls required;
