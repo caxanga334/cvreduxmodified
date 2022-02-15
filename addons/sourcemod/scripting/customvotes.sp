@@ -200,8 +200,6 @@ public void OnMapStart()
 
 	Config_Load();
 	CreateTimer(1.0, Timer_Second, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
-	
-	CreateLogFile();
 }
 
 public void OnMapEnd()
@@ -971,8 +969,6 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 
 		CPrintToChatAll("%s", strNotification);
 		
-		CreateLogFile();
-		
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -1393,8 +1389,6 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 
 		CPrintToChatAll("%s", strNotification);
 		
-		CreateLogFile();
-		
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -1757,8 +1751,6 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 
 		CPrintToChatAll("%s", strNotification);
 		
-		CreateLogFile();
-
 		// get vote name
 		char LogstrName[56];
 		strcopy(LogstrName, sizeof(LogstrName), g_strVoteName[iVote]);
@@ -2047,8 +2039,6 @@ public void Vote_Simple(int iVote, int iVoter)
 		ReplaceString(strNotification, sizeof(strNotification), "{yes|no}", "yes", true);
 
 		CPrintToChatAll("%s", strNotification);
-		
-		CreateLogFile();
 		
 		// get vote name
 		char LogstrName[56];
