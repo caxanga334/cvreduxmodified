@@ -23,6 +23,7 @@ Handle g_hArrayVoteOptionResult[MAX_VOTE_TYPES];
 Handle g_hArrayVoteMapList[MAX_VOTE_TYPES];
 Handle g_hArrayRecentMaps;
 Handle g_hCheckEmptyTimer;
+Handle g_hLogFileTimer;
 
 // ====[ VARIABLES ]===========================================================
 int g_iMapTime;
@@ -173,7 +174,6 @@ public void OnPluginStart()
 		HookEvent("cs_win_panel_match", CSGO_MapEnd);
 	}
 	
-	CreateLogFile();
 	AutoExecConfig(true, "sm_customvotes_redux");
 }
 
@@ -200,6 +200,9 @@ public void OnMapStart()
 
 	Config_Load();
 	CreateTimer(1.0, Timer_Second, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+	CreateLogFile();
+	// Timer for servers that runs the same map 24/7, fires every 6 hours
+	g_hLogFileTimer = CreateTimer(21600.0, Timer_ReCreateLogPath, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public void OnMapEnd()
@@ -218,6 +221,8 @@ public void OnMapEnd()
 				"[Custom Votes] Map end while a vote was in progress, canceling vote.");
 		}
 	}
+
+	delete g_hLogFileTimer;
 }
 
 public Action ChangeLevelEnd(const char[] output, int caller, int activator, float delay)
@@ -2857,6 +2862,11 @@ void AddVoteMenuOption(Handle menu, int curVotesCount, const char[] info,
 public Action Timer_Second(Handle hTimer)
 {
 	g_iMapTime++;
+}
+
+public Action Timer_ReCreateLogPath(Handle timer)
+{
+	CreateLogFile();
 }
 
 // ====[ STOCKS ]==============================================================
