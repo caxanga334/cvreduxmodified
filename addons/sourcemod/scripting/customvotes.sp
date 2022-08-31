@@ -8,7 +8,7 @@
 #include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.19.2U"
+#define PLUGIN_VERSION "1.19.3U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
@@ -244,6 +244,8 @@ public Action ChangeLevelEnd(const char[] output, int caller, int activator, flo
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action ChangeLevelCmdEnd(int client, int args)
@@ -2243,6 +2245,8 @@ public Action TF_WaveFailed(Handle event, const char[] name, bool dontBroadcast)
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] DEBUG: Event TF_WaveFailed.");
 	}
+
+	return Plugin_Continue;
 }
 // Cancel votes on Game Over (TF2)
 public Action TF_EventsEnded(Handle event, const char[] name, bool dontBroadcast)
@@ -2263,6 +2267,8 @@ public Action TF_EventsEnded(Handle event, const char[] name, bool dontBroadcast
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] DEBUG: Event %s. bCancelVoteGameEnd: %d IsVoteInProgress: %d", name, bCancelVoteGameEnd, IsVoteInProgress());
 	}
+
+	return Plugin_Continue;
 }
 // Cancel votes on round end (CSGO)
 public Action CSGO_MapEnd(Handle event, const char[] name, bool dontBroadcast)
@@ -2283,6 +2289,8 @@ public Action CSGO_MapEnd(Handle event, const char[] name, bool dontBroadcast)
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] DEBUG: Event CSGO_MapEnd. bCancelVoteGameEnd: %d IsVoteInProgress: %d", bCancelVoteGameEnd, IsVoteInProgress());
 	}
+
+	return Plugin_Continue;
 }
 
 public Action OnLogAction(Handle source, Identity ident, int client, int target, const char[] message)
@@ -2294,6 +2302,8 @@ public Action OnLogAction(Handle source, Identity ident, int client, int target,
 		LogToFileEx(g_sLogPath,
 			"[Custom Votes] Map manually changed while a vote was in progress, canceling vote.");
 	}
+
+	return Plugin_Continue;
 }
 
 // ====[ FUNCTIONS ]===========================================================
@@ -2866,11 +2876,13 @@ void AddVoteMenuOption(Handle menu, int curVotesCount, const char[] info,
 public Action Timer_Second(Handle hTimer)
 {
 	g_iMapTime++;
+	return Plugin_Continue;
 }
 
 public Action Timer_ReCreateLogPath(Handle timer)
 {
 	CreateLogFile();
+	return Plugin_Continue;
 }
 
 // ====[ STOCKS ]==============================================================
