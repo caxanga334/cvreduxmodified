@@ -2150,7 +2150,9 @@ public int VoteHandler_Simple(Handle hMenu, MenuAction iAction, int iVoter, int 
 						ReplaceString(strNotification, sizeof(strNotification), "{On|Off}", "On", true);
 						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
 					}
-				
+
+					// Added missing PrintToChat call
+					CPrintToChatAll("%s", strNotification);
 				}
 				else
 				{
@@ -2188,6 +2190,8 @@ public int VoteHandler_Simple(Handle hMenu, MenuAction iAction, int iVoter, int 
 						ReplaceString(strNotification, sizeof(strNotification), "{on|off}", "on", true);
 					}
 				
+					// Added missing PrintToChat call
+					CPrintToChatAll("%s", strNotification);
 				}
 				else
 				{
