@@ -15,7 +15,7 @@ jobs:
         SM_VERSION: ['1.10.x', '1.11.x', '1.12.x']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: benjlevesque/short-sha@v1.2
         id: short-sha
@@ -82,7 +82,7 @@ jobs:
           ls -la
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: cv-redux-${{ matrix.SM_VERSION }}-${{ steps.short-sha.outputs.sha }}
           path: |
