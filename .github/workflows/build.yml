@@ -52,9 +52,6 @@ jobs:
           wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/3f46f14c1c47df6bce1af7051ab47edba9f52bd8/scripting/include/kztimer.inc -O kztimer.inc
           wget "https://forums.alliedmods.net/attachment.php?attachmentid=168028&d=1516358726" -O afk_manager.inc
           wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors.inc -O multicolors.inc
-          cd multicolors
-          wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors/colors.inc -O colors.inc
-          wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors/morecolors.inc -O morecolors.inc
           echo "Done downloading include files."
           ls -la
         working-directory: ${{ env.INCLUDES_PATH }}
