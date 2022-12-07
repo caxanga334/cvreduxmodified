@@ -113,16 +113,6 @@ jobs:
     strategy:
       fail-fast: false
 
-    steps:
-    # Retrive the cached files from the previous jobs
-    - name: Retreive Release Package From Cache 1.10
-      uses: actions/cache@v3.0.11
-      id: cache1
-      with:
-        path: |
-          build/*.zip
-        key: cvredux-${{ github.ref_name }}-1.10.x
-
     # Retrive the cached files from the previous jobs
     - name: Retreive Release Package From Cache 1.11
       uses: actions/cache@v3.0.11
