@@ -2525,16 +2525,14 @@ public void Config_Load()
 			}
 			case VoteType_List:
 			{
-				if(!KvGotoFirstSubKey(hKeyValues, false))
+				if(!KvJumpToKey(hKeyValues, "Options"))
 					continue;
 
-				do
+				if(KvGotoFirstSubKey(hKeyValues, false))
 				{
-					if(!KvGotoFirstSubKey(hKeyValues, false))
-						continue;
-
 					g_hArrayVoteOptionName[iVote] = CreateArray(16);
 					g_hArrayVoteOptionResult[iVote] = CreateArray(16);
+
 					do
 					{
 						// Vote option name
@@ -2548,15 +2546,18 @@ public void Config_Load()
 						PushArrayString(g_hArrayVoteOptionResult[iVote], strOptionResult);
 					}
 					while(KvGotoNextKey(hKeyValues, false));
+
 					KvGoBack(hKeyValues);
 				}
-				while(KvGotoNextKey(hKeyValues, false));
+
 				KvGoBack(hKeyValues);
 			}
 		}
-		iVote++;
+
+		++iVote;
 	}
-	while(KvGotoNextKey(hKeyValues, false));
+	while(KvGotoNextKey(hKeyValues));
+
 	CloseHandle(hKeyValues);
 
 	g_iVoteCount = iVote;
