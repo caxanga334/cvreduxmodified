@@ -8,7 +8,7 @@
 #include <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.19.4U"
+#define PLUGIN_VERSION "1.19.5U-DEV"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
@@ -1533,6 +1533,14 @@ public int VoteHandler_Map(Handle hMenu, MenuAction iAction, int iVoter, int iPa
 		}
 
 		g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
+	}
+	else if(iAction == MenuAction_VoteCancel)
+	{
+		for(int client = 0; client <= MaxClients; client++)
+		{
+			g_bVoteForMap[client][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
+			g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
+		}
 	}
 	return 0;
 }
