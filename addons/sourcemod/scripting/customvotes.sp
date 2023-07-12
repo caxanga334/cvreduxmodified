@@ -1127,6 +1127,18 @@ public int VoteHandler_Players(Handle hMenu, MenuAction iAction, int iVoter, int
 		strcopy(g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth), "");
 		strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), "");
 	}
+	else if(iAction == MenuAction_VoteCancel)
+	{
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForTarget[i][g_iCurrentVoteIndex][g_iCurrentVoteTarget] = false;
+		}
+		g_iCurrentVoteIndex = g_iCurrentVoteTarget = -1;
+		strcopy(g_strVoteTargetIndex, sizeof(g_strVoteTargetIndex), "");
+		strcopy(g_strVoteTargetId, sizeof(g_strVoteTargetId), "");
+		strcopy(g_strVoteTargetAuth, sizeof(g_strVoteTargetAuth), "");
+		strcopy(g_strVoteTargetName, sizeof(g_strVoteTargetName), "");
+	}
 	return 0;
 }
 
@@ -1536,9 +1548,9 @@ public int VoteHandler_Map(Handle hMenu, MenuAction iAction, int iVoter, int iPa
 	}
 	else if(iAction == MenuAction_VoteCancel)
 	{
-		for(int client = 0; client <= MaxClients; client++)
+		for (int i = 1; i <= MaxClients; ++i)
 		{
-			g_bVoteForMap[client][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
+			g_bVoteForMap[i][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
 		}
 
 		g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
@@ -1900,6 +1912,15 @@ public int VoteHandler_List(Handle hMenu, MenuAction iAction, int iVoter, int iP
 
 		g_iCurrentVoteIndex = g_iCurrentVoteOption = -1;
 	}
+	else if(iAction == MenuAction_VoteCancel)
+	{
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForOption[i][g_iCurrentVoteIndex][g_iCurrentVoteOption] = false;
+		}
+
+		g_iCurrentVoteIndex = g_iCurrentVoteOption = -1;
+	}
 	return 0;
 }
 
@@ -2228,6 +2249,15 @@ public int VoteHandler_Simple(Handle hMenu, MenuAction iAction, int iVoter, int 
 			CPrintToChatAll("%s", strNotification);
 		}
 
+		for (int i = 1; i <= MaxClients; ++i)
+		{
+			g_bVoteForSimple[i][g_iCurrentVoteIndex] = false;
+		}
+
+		g_iCurrentVoteIndex = -1;
+	}
+	else if(iAction == MenuAction_VoteCancel)
+	{
 		for (int i = 1; i <= MaxClients; ++i)
 		{
 			g_bVoteForSimple[i][g_iCurrentVoteIndex] = false;
@@ -2584,7 +2614,7 @@ public bool CheckVotesForTarget(int iVote, int iTarget)
 		return false;
 	} */
 
-	if(iVotes >= iRequired)
+	if(iVotes >= iRequired && iVote == g_iCurrentVoteIndex) // Don't run vote pass logic if the vote index is not the current active vote
 	{
 		g_iVotePasses[iVote]++;
 
@@ -2700,7 +2730,7 @@ public bool CheckVotesForOption(int iVote, int iOption)
 		return false;
 	} */
 
-	if(iVotes >= iRequired)
+	if(iVotes >= iRequired && iVote == g_iCurrentVoteIndex) // Don't run vote pass logic if the vote index is not the current active vote
 	{
 		g_iVotePasses[iVote]++;
 
@@ -2753,7 +2783,7 @@ public bool CheckVotesForSimple(int iVote)
 		return false;
 	} */
 
-	if(iVotes >= iRequired)
+	if(iVotes >= iRequired && iVote == g_iCurrentVoteIndex) // Don't run vote pass logic if the vote index is not the current active vote
 	{
 		g_iVotePasses[iVote]++;
 
