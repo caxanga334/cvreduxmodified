@@ -1539,8 +1539,9 @@ public int VoteHandler_Map(Handle hMenu, MenuAction iAction, int iVoter, int iPa
 		for(int client = 0; client <= MaxClients; client++)
 		{
 			g_bVoteForMap[client][g_iCurrentVoteIndex][g_iCurrentVoteMap] = false;
-			g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
 		}
+
+		g_iCurrentVoteIndex = g_iCurrentVoteMap = -1;
 	}
 	return 0;
 }
@@ -2641,7 +2642,7 @@ public bool CheckVotesForMap(int iVote, int iMap)
 		return false;
 	} */
 
-	if(iVotes >= iRequired)
+	if(iVotes >= iRequired && iVote == g_iCurrentVoteIndex) // Don't run vote pass logic if the vote index is not the current active vote
 	{
 		g_iVotePasses[iVote]++;
 
