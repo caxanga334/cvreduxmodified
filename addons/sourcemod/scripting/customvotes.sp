@@ -2701,6 +2701,7 @@ public bool CheckVotesForOption(int iVote, int iOption)
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
 			FormatOptionString(iVote, iOption, strCommand, sizeof(strCommand));
+			FormatCurrentMapString(strCommand, sizeof(strCommand));
 			ServerCommand(strCommand);
 		}
 
@@ -2759,6 +2760,7 @@ public bool CheckVotesForSimple(int iVote)
 				ReplaceString(strCommand, sizeof(strCommand), "{On|Off}", "1", false);
 
 			FormatVoteString(iVote, _, strCommand, sizeof(strCommand));
+			FormatCurrentMapString(strCommand, sizeof(strCommand));
 			ServerCommand(strCommand);
 		}
 
@@ -3018,6 +3020,15 @@ stock void FormatOptionString(int iVote, int iOption, char[] strBuffer, int iBuf
 
 	QuoteString(strOptionResult, sizeof(strOptionResult));
 	ReplaceString(strBuffer, iBufferSize, "{OPTION_RESULT}", strOptionResult, false);
+}
+
+void FormatCurrentMapString(char[] strBuffer, int iBufferSize)
+{
+	char strCurrentMap[MAX_NAME_LENGTH];
+	GetCurrentMap(strCurrentMap, sizeof(strCurrentMap));
+
+	QuoteString(strCurrentMap, sizeof(strCurrentMap));
+	ReplaceString(strBuffer, iBufferSize, "{CURRENT_MAP_NAME}", strCurrentMap, false);
 }
 
 stock void QuoteString(char[] strBuffer, int iBuffersize)
