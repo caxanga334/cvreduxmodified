@@ -59,7 +59,7 @@ jobs:
 
       - name: Move Third-Party Includes
         run: |
-          rsync -rv ${{ github.workspace }}/cvreduxmodified/cvreduxmodified/thirdparty/includes/* ${{ env.INCLUDES_PATH }}
+          rsync -rv ${{ github.workspace }}/thirdparty/includes/* ${{ env.INCLUDES_PATH }}
 
       - name: Compile plugins
         run: |
