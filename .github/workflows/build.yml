@@ -49,7 +49,6 @@ jobs:
 
           wget https://github.com/sbpp/sourcebans-pp/raw/refs/heads/php81/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
           wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/4382ec21c01ac7998412aa8b7106825a81612b2f/scripting/include/kztimer.inc -O kztimer.inc
-          wget "https://forums.alliedmods.net/attachment.php?attachmentid=168028&d=1516358726" -O afk_manager.inc
           wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors.inc -O multicolors.inc
           cd multicolors
           wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors/colors.inc -O colors.inc
@@ -57,6 +56,10 @@ jobs:
           echo "Done downloading include files."
           ls -la
         working-directory: ${{ env.INCLUDES_PATH }}
+
+      - name: Move Third-Party Includes
+        run: |
+          rsync -rv ${{ github.workspace }}/cvreduxmodified/cvreduxmodified/thirdparty/includes/* ${{ env.INCLUDES_PATH }}
 
       - name: Compile plugins
         run: |
