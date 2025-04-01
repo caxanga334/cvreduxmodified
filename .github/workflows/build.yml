@@ -13,12 +13,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        SM_VERSION: ['1.11.x', '1.12.x']
+        SM_VERSION: ['1.12.x', '1.13.x']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.2.2
 
-      - uses: benjlevesque/short-sha@v2.1
+      - uses: benjlevesque/short-sha@v3.0
         id: short-sha
 
       - name: Set environment variables
@@ -47,8 +47,8 @@ jobs:
         run: |
           echo "Begin downloading include files"
 
-          wget https://raw.githubusercontent.com/sbpp/sourcebans-pp/v1.x/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
-          wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/3f46f14c1c47df6bce1af7051ab47edba9f52bd8/scripting/include/kztimer.inc -O kztimer.inc
+          wget https://github.com/sbpp/sourcebans-pp/raw/refs/heads/php81/game/addons/sourcemod/scripting/include/sourcebanspp.inc -O sourcebanspp.inc
+          wget https://bitbucket.org/kztimerglobalteam/kztimerglobal/raw/4382ec21c01ac7998412aa8b7106825a81612b2f/scripting/include/kztimer.inc -O kztimer.inc
           wget "https://forums.alliedmods.net/attachment.php?attachmentid=168028&d=1516358726" -O afk_manager.inc
           wget https://raw.githubusercontent.com/Bara/Multi-Colors/master/addons/sourcemod/scripting/include/multicolors.inc -O multicolors.inc
           cd multicolors
@@ -83,7 +83,7 @@ jobs:
           ls -la
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: cv-redux-${{ matrix.SM_VERSION }}-${{ steps.short-sha.outputs.sha }}
           path: |
@@ -99,7 +99,7 @@ jobs:
       # Cache release package to be retreived by the create_release job
       - name: Cache Release Package
         if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/cache@v3.0.11
+        uses: actions/cache@v4.2.3
         id: cache
         with:
           path: |
@@ -115,7 +115,7 @@ jobs:
 
     steps:
       - name: Retreive Release Package From Cache 1.11
-        uses: actions/cache@v3.0.11
+        uses: actions/cache@v4.2.3
         id: cache2
         with:
           path: |
@@ -123,7 +123,7 @@ jobs:
           key: cvredux-${{ github.ref_name }}-1.11.x
 
       - name: Retreive Release Package From Cache 1.12
-        uses: actions/cache@v3.0.11
+        uses: actions/cache@v4.2.3
         id: cache3
         with:
           path: |
@@ -131,7 +131,7 @@ jobs:
           key: cvredux-${{ github.ref_name }}-1.12.x
 
       - name: Create Release
-        uses: softprops/action-gh-release@v0.1.15
+        uses: softprops/action-gh-release@v2.2.1
         with:
           name: "Custom Votes Redux Modified ${{ github.ref_name }}"
           generate_release_notes: true
