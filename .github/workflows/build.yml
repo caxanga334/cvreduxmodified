@@ -66,7 +66,7 @@ jobs:
           for file in customvotes.sp
           do
             echo -e "\nCompiling $file..."
-            spcomp -E -w234 -O2 -v2 -i include $file
+            spcomp -v2 -i include $file
           done
           echo "===OUT FILES==="
           ls
