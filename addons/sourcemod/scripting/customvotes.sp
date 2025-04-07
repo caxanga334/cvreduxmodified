@@ -2908,6 +2908,7 @@ stock bool IsValidClient(int iClient)
 bool IsAFKClient(int iClient)
 {
 #if defined _afkmanager_included
+
 	if (g_bAfkManager && bAfkManagerEnable)
 	{
 		if (AFKM_GetClientAFKTime(iClient) >= iAfkTime)
@@ -2917,6 +2918,8 @@ bool IsAFKClient(int iClient)
 
 		return false;
 	}
+#else
+	#pragma unused iClient
 #endif
 
 	return false;
