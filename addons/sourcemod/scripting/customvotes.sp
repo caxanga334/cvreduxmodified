@@ -12,6 +12,8 @@
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
+// uncomment to enable debug logging
+// #define DEBUG
 #pragma semicolon 1;
 #pragma newdecls required;
 
@@ -916,6 +918,16 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 	{
 		for(int i = 1; i <= MaxClients; i++)
 		{
+#if defined(DEBUG)
+			if (IsClientInGame(i))
+			{
+				LogMessage("<DEBUG> Vote_Players - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+			}
+			else
+			{
+				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+			}
+#endif
 			g_bVoteForTarget[i][iVote][iTarget] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget && !IsAFKClient(i))
 			{
@@ -1347,6 +1359,17 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 	{
 		for(int i = 1; i <= MaxClients; i++)
 		{
+#if defined(DEBUG)
+			if (IsClientInGame(i))
+			{
+				LogMessage("<DEBUG> Vote_Map - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+			}
+			else
+			{
+				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+			}
+#endif
+
 			g_bVoteForMap[i][iVote][iMap] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 			{
@@ -1709,6 +1732,17 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 	{
 		for(int i = 1; i <= MaxClients; i++)
 		{
+#if defined(DEBUG)
+			if (IsClientInGame(i))
+			{
+				LogMessage("<DEBUG> Vote_List - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+			}
+			else
+			{
+				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+			}
+#endif
+
 			g_bVoteForOption[i][iVote][iOption] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 			{
@@ -1999,6 +2033,16 @@ public void Vote_Simple(int iVote, int iVoter)
 	{
 		for(int i = 1; i <= MaxClients; i++)
 		{
+#if defined(DEBUG)
+			if (IsClientInGame(i))
+			{
+				LogMessage("<DEBUG> Vote_Simple - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+			}
+			else
+			{
+				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+			}
+#endif
 			g_bVoteForSimple[i][iVote] = false;
 			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 			{
