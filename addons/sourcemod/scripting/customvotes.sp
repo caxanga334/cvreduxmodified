@@ -935,11 +935,11 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 		{
 			if (IsClientInGame(i))
 			{
-				LogMessage("<DEBUG> Vote_Players - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Vote_Players - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
 			}
 			else
 			{
-				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
 			}
 		}
 
@@ -1360,11 +1360,11 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 		{
 			if (IsClientInGame(i))
 			{
-				LogMessage("<DEBUG> Vote_Map - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Vote_Map - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
 			}
 			else
 			{
-				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
 			}
 		}
 
@@ -1722,11 +1722,11 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 		{
 			if (IsClientInGame(i))
 			{
-				LogMessage("<DEBUG> Vote_List - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Vote_List - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
 			}
 			else
 			{
-				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
 			}
 		}
 
@@ -2013,11 +2013,11 @@ public void Vote_Simple(int iVote, int iVoter)
 		{
 			if (IsClientInGame(i))
 			{
-				LogMessage("<DEBUG> Vote_Simple - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Vote_Simple - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
 			}
 			else
 			{
-				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
 			}
 		}
 
