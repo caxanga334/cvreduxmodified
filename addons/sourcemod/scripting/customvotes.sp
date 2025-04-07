@@ -5,15 +5,13 @@
 #undef REQUIRE_PLUGIN
 #include <sourcebanspp>
 #tryinclude <kztimer>
-#include <afk_manager>
+#tryinclude <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
 #define PLUGIN_VERSION "1.19.4U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
-// uncomment to enable debug logging
-// #define DEBUG
 #pragma semicolon 1;
 #pragma newdecls required;
 
@@ -34,7 +32,9 @@ int g_iCurrentVoteIndex;
 int g_iCurrentVoteTarget;
 int g_iCurrentVoteMap;
 int g_iCurrentVoteOption;
+#if defined _afkmanager_included
 int iAfkTime;
+#endif
 int g_iVoteType[MAX_VOTE_TYPES];
 int g_iVoteDelay[MAX_VOTE_TYPES];
 int g_iVoteCooldown[MAX_VOTE_TYPES];
@@ -60,7 +60,9 @@ bool g_bVoteForOption[MAXPLAYERS + 1][MAX_VOTE_TYPES][MAX_VOTE_OPTIONS];
 bool g_bVoteForSimple[MAXPLAYERS + 1][MAX_VOTE_TYPES];
 bool g_bKzTimer = false;
 bool g_bSourceBans = false;
+#if defined _afkmanager_included
 bool g_bAfkManager = false;
+#endif
 bool g_bMapEnded = false;
 float g_flVoteRatio[MAX_VOTE_TYPES];
 char g_strVoteName[MAX_VOTE_TYPES][MAX_NAME_LENGTH];
@@ -85,15 +87,19 @@ Handle CvarAutoBanEnabled;
 Handle CvarAutoBanWarning;
 Handle CvarAutoBanDuration;
 Handle CvarAutoBanType;
+#if defined _afkmanager_included
 Handle CvarAfkTime;
 Handle CvarAfkManager;
+#endif
 Handle CvarCancelVoteGameEnd;
 bool bDebugMode;
 bool bResetOnWaveFailed;
 bool bAutoBanEnabled;
 bool bAutoBanWarning;
 bool bAutoBanType;
+#if defined _afkmanager_included
 bool bAfkManagerEnable;
+#endif
 bool bCancelVoteGameEnd;
 int iAutoBanDuration;
 bool IsTF2 = false;
@@ -139,10 +145,12 @@ public void OnPluginStart()
 	HookConVarChange( CvarCancelVoteGameEnd, OnConVarChanged );
 	CvarDebugMode = CreateConVar("sm_cv_debug", "0", "Enable debug mode?", FCVAR_NONE, true, 0.0, true, 1.0); // Debug mode
 	HookConVarChange( CvarDebugMode, OnConVarChanged );
+#if defined _afkmanager_included
 	CvarAfkManager = CreateConVar("sm_cv_afkenable", "0", "Enable Afk players are no longer counted in the total?", FCVAR_NONE, true, 0.0, true, 1.0); //Enable Afk players are no longer counted in the total?
 	HookConVarChange( CvarAfkManager, OnConVarChanged );
 	CvarAfkTime = CreateConVar("sm_cv_afktime", "10", "How long (Seconds) Afk players are no longer counted in the total?", FCVAR_NONE, true, 0.0, true, 1000.0); //How long Afk players are no longer counted in the total?
 	HookConVarChange( CvarAfkTime, OnConVarChanged );
+#endif
 	
 	RegAdminCmd("sm_customvotes_reload", Command_Reload, ADMFLAG_ROOT, "Reloads the configuration file (Clears all votes)");
 	RegAdminCmd("sm_votemenu", Command_ChooseVote, 0, "Opens the vote menu");
@@ -276,8 +284,10 @@ public void OnConVarChanged( Handle hConVar, const char[] strOldValue, const cha
 	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
 	bCancelVoteGameEnd = GetConVarBool( CvarCancelVoteGameEnd );
 	bDebugMode = GetConVarBool( CvarDebugMode );
+#if defined _afkmanager_included
 	bAfkManagerEnable = GetConVarBool( CvarAfkManager );
 	iAfkTime = GetConVarBool( CvarAfkTime );
+#endif
 }
 
 stock void DetectGame()
@@ -317,10 +327,12 @@ public void OnLibraryAdded(const char[] szName)
 	{
 		g_bSourceBans = true;
 	}
+#if defined _afkmanager_included
 	if (StrEqual(szName, "afkmanager"))
 	{
 		g_bAfkManager = true;
 	}
+#endif
 }
 
 public void OnLibraryRemoved(const char[] szName)
@@ -334,10 +346,12 @@ public void OnLibraryRemoved(const char[] szName)
 	{
 		g_bSourceBans = false;
 	}
+#if defined _afkmanager_included
 	if (StrEqual(szName, "afkmanager"))
 	{
 		g_bAfkManager = false;
 	}
+#endif
 }
 
 public void OnClientConnected(int iTarget)
@@ -914,11 +928,11 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 
 	int iPlayers[MAXPLAYERS + 1];
 	int iTotal;
-	if (bAfkManagerEnable && g_bAfkManager)
+
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		for(int i = 1; i <= MaxClients; i++)
+		if (bDebugMode)
 		{
-#if defined(DEBUG)
 			if (IsClientInGame(i))
 			{
 				LogMessage("<DEBUG> Vote_Players - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
@@ -927,37 +941,21 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 			{
 				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
 			}
-#endif
-			g_bVoteForTarget[i][iVote][iTarget] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget && !IsAFKClient(i))
-			{
-				if(g_bVotePlayersTeam[iVote])
-				{
-					if(GetClientTeam(i) == GetClientTeam(iVoter))
-					iPlayers[iTotal++] = i;
-				}
-				else
-					iPlayers[iTotal++] = i;
-			}
 		}
-	}
-	else
-	{
-		for(int i = 1; i <= MaxClients; i++)
+
+		g_bVoteForTarget[i][iVote][iTarget] = false;
+		if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget && !IsAFKClient(i))
 		{
-			g_bVoteForTarget[i][iVote][iTarget] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i) && i != iTarget)
+			if(g_bVotePlayersTeam[iVote])
 			{
-				if(g_bVotePlayersTeam[iVote])
-				{
-					if(GetClientTeam(i) == GetClientTeam(iVoter))
-					iPlayers[iTotal++] = i;
-				}
-				else
-					iPlayers[iTotal++] = i;
+				if(GetClientTeam(i) == GetClientTeam(iVoter))
+				iPlayers[iTotal++] = i;
 			}
+			else
+				iPlayers[iTotal++] = i;
 		}
 	}
+
 	if(g_iVoteMinimum[iVote] > iTotal || iTotal <= 0)
 	{
 		CPrintToChat(iVoter, "%t", "Not Enough Valid Clients");
@@ -1355,11 +1353,11 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 
 	int iPlayers[MAXPLAYERS + 1];
 	int iTotal;
-	if (bAfkManagerEnable && g_bAfkManager)
+
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		for(int i = 1; i <= MaxClients; i++)
+		if (bDebugMode)
 		{
-#if defined(DEBUG)
 			if (IsClientInGame(i))
 			{
 				LogMessage("<DEBUG> Vote_Map - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
@@ -1368,26 +1366,15 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 			{
 				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
 			}
-#endif
+		}
 
-			g_bVoteForMap[i][iVote][iMap] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
-		}
-	}
-	else
-	{
-		for(int i = 1; i <= MaxClients; i++)
+		g_bVoteForMap[i][iVote][iMap] = false;
+		if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 		{
-			g_bVoteForMap[i][iVote][iMap] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
+			iPlayers[iTotal++] = i;
 		}
 	}
+
 	if(g_iVoteMinimum[iVote] > iTotal || iTotal <= 0)
 	{
 		CPrintToChat(iVoter, "%t", "Not Enough Valid Clients");
@@ -1728,11 +1715,11 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 	int iPlayers[MAXPLAYERS + 1];
 	int iTotal;
 
-	if (bAfkManagerEnable && g_bAfkManager)
+
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		for(int i = 1; i <= MaxClients; i++)
+		if (bDebugMode)
 		{
-#if defined(DEBUG)
 			if (IsClientInGame(i))
 			{
 				LogMessage("<DEBUG> Vote_List - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
@@ -1741,26 +1728,16 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 			{
 				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
 			}
-#endif
+		}
 
-			g_bVoteForOption[i][iVote][iOption] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
-		}
-	}
-	else
-	{
-		for(int i = 1; i <= MaxClients; i++)
+		g_bVoteForOption[i][iVote][iOption] = false;
+		if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 		{
-			g_bVoteForOption[i][iVote][iOption] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
+			iPlayers[iTotal++] = i;
 		}
 	}
+	
+
 	if(g_iVoteMinimum[iVote] > iTotal || iTotal <= 0)
 	{
 		CPrintToChat(iVoter, "%t", "Not Enough Valid Clients");
@@ -2029,11 +2006,11 @@ public void Vote_Simple(int iVote, int iVoter)
 	int iPlayers[MAXPLAYERS + 1];
 	int iTotal;
 	
-	if (bAfkManagerEnable && g_bAfkManager)
+
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		for(int i = 1; i <= MaxClients; i++)
+		if (bDebugMode)
 		{
-#if defined(DEBUG)
 			if (IsClientInGame(i))
 			{
 				LogMessage("<DEBUG> Vote_Simple - Player %L %s %s", i, IsFakeClient(i) ? "FAKE CLIENT" : "REAL CLIENT", IsAFKClient(i) ? "AFK" : "NOT AFK");
@@ -2042,25 +2019,15 @@ public void Vote_Simple(int iVote, int iVoter)
 			{
 				LogMessage("<DEBUG> Ignoring client index %i, IsClientInGame == false!");
 			}
-#endif
-			g_bVoteForSimple[i][iVote] = false;
-			if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
 		}
-	}
-	else
-	{
-		for(int i = 1; i <= MaxClients; i++)
+
+		g_bVoteForSimple[i][iVote] = false;
+		if(IsClientInGame(i) && !IsFakeClient(i) && !IsAFKClient(i))
 		{
-			g_bVoteForSimple[i][iVote] = false;	
-			if(IsClientInGame(i) && !IsFakeClient(i))
-			{
-				iPlayers[iTotal++] = i;
-			}
+			iPlayers[iTotal++] = i;
 		}
 	}
+
 	if(g_iVoteMinimum[iVote] > iTotal || iTotal <= 0)
 	{
 		CPrintToChat(iVoter, "%t", "Not Enough Valid Clients");
@@ -2937,12 +2904,24 @@ stock bool IsValidClient(int iClient)
 		return false;
 	return true;
 }
-stock bool IsAFKClient(int iClient)
+
+bool IsAFKClient(int iClient)
 {
-	if(AFKM_GetClientAFKTime(iClient) >= iAfkTime)
-		return true;
+#if defined _afkmanager_included
+	if (g_bAfkManager && bAfkManagerEnable)
+	{
+		if (AFKM_GetClientAFKTime(iClient) >= iAfkTime)
+		{
+			return true;
+		}
+
+		return false;
+	}
+#endif
+
 	return false;
- }
+}
+
 stock void FormatVoterString(int iVote, int iVoter, char[] strBuffer, int iBufferSize)
 {
 	char strVoter[MAX_NAME_LENGTH];
