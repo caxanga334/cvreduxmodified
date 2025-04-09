@@ -8,7 +8,7 @@
 #tryinclude <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.19.4U"
+#define PLUGIN_VERSION "1.19.5U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
@@ -939,7 +939,7 @@ public void Vote_Players(int iVote, int iVoter, int iTarget)
 			}
 			else
 			{
-				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!", i);
 			}
 		}
 
@@ -1364,7 +1364,7 @@ public void Vote_Map(int iVote, int iVoter, int iMap)
 			}
 			else
 			{
-				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!", i);
 			}
 		}
 
@@ -1726,7 +1726,7 @@ public void Vote_List(int iVote, int iVoter, int iOption)
 			}
 			else
 			{
-				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!", i);
 			}
 		}
 
@@ -2017,7 +2017,7 @@ public void Vote_Simple(int iVote, int iVoter)
 			}
 			else
 			{
-				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!");
+				LogToFileEx(g_sLogPath, "[Custom Votes] DEBUG: Ignoring client index %i, IsClientInGame == false!", i);
 			}
 		}
 
