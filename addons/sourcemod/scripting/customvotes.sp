@@ -8,7 +8,7 @@
 #tryinclude <afk_manager>
 // ====[ DEFINES ]=============================================================
 #define PLUGIN_NAME "Custom Votes"
-#define PLUGIN_VERSION "1.19.5U"
+#define PLUGIN_VERSION "1.19.6U"
 #define MAX_VOTE_TYPES 32
 #define MAX_VOTE_MAPS 2048
 #define MAX_VOTE_OPTIONS 32
@@ -2597,7 +2597,8 @@ public bool CheckVotesForTarget(int iVote, int iTarget)
 			char strCommand[255];
 			strcopy(strCommand, sizeof(strCommand), g_strVoteCommand[iVote]);
 
-			FormatTargetString(iVote, iTarget, strCommand, sizeof(strCommand));
+			// For security reasons, we don't format the target's name, only index, user id and steam id.
+			FormatTargetString(iVote, iTarget, strCommand, sizeof(strCommand), true);
 			ServerCommand(strCommand);
 		}
 
@@ -2973,7 +2974,16 @@ stock void FormatVoteString(int iVote, int iChoice = -1, char[] strBuffer, int i
 	ReplaceString(strBuffer, iBufferSize, "{VOTE_REQUIRED}", strVoteRequired, false);
 }
 
-stock void FormatTargetString(int iVote, int iTarget, char[] strBuffer, int iBufferSize)
+/**
+ * Formats the target string and replace with actual values.
+ * 
+ * @param iVote			Vote ID.
+ * @param iTarget		Client index of the target to format.
+ * @param strBuffer		String to replace target variables with values.
+ * @param iBufferSize	Length of the strBuffer string.
+ * @param bSkipName		If true, don't format {TARGET_NAME}.
+ */
+void FormatTargetString(int iVote, int iTarget, char[] strBuffer, int iBufferSize, const bool bSkipName = false)
 {
 	// Check if target disconnected (Anti-Grief)
 	if(!IsValidClient(iTarget))
@@ -2989,9 +2999,13 @@ stock void FormatTargetString(int iVote, int iTarget, char[] strBuffer, int iBuf
 		QuoteString(strAntiGrief, sizeof(strAntiGrief));
 		ReplaceString(strBuffer, iBufferSize, "{TARGET_STEAMID}", g_strVoteTargetAuth, false);
 
-		strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetName);
-		QuoteString(strAntiGrief, sizeof(strAntiGrief));
-		ReplaceString(strBuffer, iBufferSize, "{TARGET_NAME}", g_strVoteTargetName, false);
+		if (!bSkipName)
+		{
+			strcopy(strAntiGrief, sizeof(strAntiGrief), g_strVoteTargetName);
+			QuoteString(strAntiGrief, sizeof(strAntiGrief));
+			ReplaceString(strBuffer, iBufferSize, "{TARGET_NAME}", g_strVoteTargetName, false);
+		}
+
 		return;
 	}
 
@@ -3014,8 +3028,11 @@ stock void FormatTargetString(int iVote, int iTarget, char[] strBuffer, int iBuf
 	char strTargetName[MAX_NAME_LENGTH];
 	GetClientName(iTarget, strTargetName, sizeof(strTargetName));
 
-	QuoteString(strTargetName, sizeof(strTargetName));
-	ReplaceString(strBuffer, iBufferSize, "{TARGET_NAME}", strTargetName, false);
+	if (!bSkipName)
+	{
+		QuoteString(strTargetName, sizeof(strTargetName));
+		ReplaceString(strBuffer, iBufferSize, "{TARGET_NAME}", strTargetName, false);
+	}
 }
 
 stock void FormatMapString(int iVote, int iMap, char[] strBuffer, int iBufferSize)
