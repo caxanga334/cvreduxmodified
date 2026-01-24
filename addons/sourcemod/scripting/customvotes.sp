@@ -288,7 +288,7 @@ public void OnConVarChanged( Handle hConVar, const char[] strOldValue, const cha
 	bDebugMode = GetConVarBool( CvarDebugMode );
 #if defined _afkmanager_included
 	bAfkManagerEnable = GetConVarBool( CvarAfkManager );
-	iAfkTime = GetConVarBool( CvarAfkTime );
+	iAfkTime = GetConVarInt( CvarAfkTime );
 #endif
 }
 
