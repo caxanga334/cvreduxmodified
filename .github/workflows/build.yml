@@ -61,7 +61,8 @@ jobs:
         run: |
           git clone https://bitbucket.org/kztimerglobalteam/kztimerglobal.git kztimerglobal --recurse-submodules --depth=1
           cd kztimerglobal
-          rsync -rv /includes/kztimer.inc ${{ env.INCLUDES_PATH }}/
+          ls -lah
+          rsync -rv ./includes/kztimer.inc ${{ env.INCLUDES_PATH }}/
 
       - name: Move Third-Party Includes
         run: |
