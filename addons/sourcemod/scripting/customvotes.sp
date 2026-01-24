@@ -81,17 +81,17 @@ char g_strVoteTargetName[255];
 char g_strConfigFile[PLATFORM_MAX_PATH];
 char g_sLogPath[PLATFORM_MAX_PATH];
 // extras
-Handle CvarDebugMode;
-Handle CvarResetOnWaveFailed;
-Handle CvarAutoBanEnabled;
-Handle CvarAutoBanWarning;
-Handle CvarAutoBanDuration;
-Handle CvarAutoBanType;
+ConVar CvarDebugMode;
+ConVar CvarResetOnWaveFailed;
+ConVar CvarAutoBanEnabled;
+ConVar CvarAutoBanWarning;
+ConVar CvarAutoBanDuration;
+ConVar CvarAutoBanType;
 #if defined _afkmanager_included
-Handle CvarAfkTime;
-Handle CvarAfkManager;
+ConVar CvarAfkTime;
+ConVar CvarAfkManager;
 #endif
-Handle CvarCancelVoteGameEnd;
+ConVar CvarCancelVoteGameEnd;
 bool bDebugMode;
 bool bResetOnWaveFailed;
 bool bAutoBanEnabled;
@@ -277,18 +277,18 @@ public Action ChangeLevelCmdEnd(int client, int args)
 	return Plugin_Continue;
 }
 
-public void OnConVarChanged( Handle hConVar, const char[] strOldValue, const char[] strNewValue )
+public void OnConVarChanged(ConVar hConVar, const char[] strOldValue, const char[] strNewValue)
 {
-	bResetOnWaveFailed = GetConVarBool( CvarResetOnWaveFailed );
-	bAutoBanEnabled = GetConVarBool( CvarAutoBanEnabled );
-	bAutoBanWarning = GetConVarBool( CvarAutoBanWarning );
-	bAutoBanType = GetConVarBool( CvarAutoBanType );
-	iAutoBanDuration = GetConVarInt( CvarAutoBanDuration );
-	bCancelVoteGameEnd = GetConVarBool( CvarCancelVoteGameEnd );
-	bDebugMode = GetConVarBool( CvarDebugMode );
+	bResetOnWaveFailed = CvarResetOnWaveFailed.BoolValue;
+	bAutoBanEnabled = CvarAutoBanEnabled.BoolValue;
+	bAutoBanWarning = CvarAutoBanWarning.BoolValue;
+	bAutoBanType = CvarAutoBanType.BoolValue;
+	iAutoBanDuration = CvarAutoBanDuration.IntValue;
+	bCancelVoteGameEnd = CvarCancelVoteGameEnd.BoolValue;
+	bDebugMode = CvarDebugMode.BoolValue;
 #if defined _afkmanager_included
-	bAfkManagerEnable = GetConVarBool( CvarAfkManager );
-	iAfkTime = GetConVarBool( CvarAfkTime );
+	bAfkManagerEnable = CvarAfkManager.BoolValue;
+	iAfkTime = CvarAfkTime.IntValue;
 #endif
 }
 
